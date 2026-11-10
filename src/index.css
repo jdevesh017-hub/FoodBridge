@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand-forest: #183D2B;
+    --brand-olive: #647C50;
+    --brand-ivory: #F7F6F0;
+    --brand-sage: #E8EDE2;
+    --brand-charcoal: #252923;
+    --brand-terracotta: #C77A54;
+    --brand-white: #FFFFFF;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #252923;
+    background-color: #F7F6F0;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-editorial {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Custom scrollbar and subtle map container styling */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  border-radius: 0.5rem;
+  z-index: 10;
+}
+
+.custom-leaflet-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
