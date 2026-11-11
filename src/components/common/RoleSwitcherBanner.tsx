@@ -5,6 +5,7 @@ import { storageAdapter } from '../../services/storageAdapter';
 
 interface RoleSwitcherBannerProps {
   currentRole: UserRole;
+  isDemoMode?: boolean;
   onSelectRole: (role: UserRole) => void;
   activeUserName?: string;
   onShowToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
@@ -12,15 +13,16 @@ interface RoleSwitcherBannerProps {
 
 export const RoleSwitcherBanner: React.FC<RoleSwitcherBannerProps> = ({
   currentRole,
+  isDemoMode,
   onSelectRole,
   activeUserName,
   onShowToast,
 }) => {
   const handleReset = () => {
-    if (window.confirm('Reset all interactive data to pristine pilot baseline?')) {
-      storageAdapter.resetToSeed();
+    if (window.confirm('Reset demo baseline data? Note: All your custom user-created donations and accounts will be safely preserved.')) {
+      storageAdapter.resetDemoData();
       onSelectRole('public');
-      onShowToast('Database reset to initial demonstration baseline.', 'info');
+      onShowToast('Demo data refreshed. Custom created donations and registered user accounts were preserved.', 'info');
     }
   };
 
@@ -33,15 +35,25 @@ export const RoleSwitcherBanner: React.FC<RoleSwitcherBannerProps> = ({
             Evaluation Sandbox
           </span>
           <span className="text-[#A3B899] hidden sm:inline">·</span>
-          <span className="text-[#E8EDE2] hidden sm:inline">
-            Switch perspective to test end-to-end redistribution:
-          </span>
+          {isDemoMode ? (
+            <span className="bg-[#254F38] text-[#D3DECD] px-2 py-0.5 rounded text-[10px] font-mono">
+              Demo Persona Active: {activeUserName || 'Curated Persona'}
+            </span>
+          ) : activeUserName ? (
+            <span className="bg-[#C77A54]/30 text-amber-200 border border-amber-300/30 px-2 py-0.5 rounded text-[10px] font-mono">
+              Live Registered User: {activeUserName}
+            </span>
+          ) : (
+            <span className="text-[#E8EDE2] hidden sm:inline">
+              Switch perspective to test end-to-end redistribution:
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1 flex-wrap justify-center">
           <button
             onClick={() => onSelectRole('public')}
-            className={`px-2.5 py-1 rounded transition-colors ${
+            className={`px-2.5 py-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-[#F7F6F0] focus-visible:outline-none ${
               currentRole === 'public'
                 ? 'bg-[#F7F6F0] text-[#183D2B] font-semibold shadow-xs'
                 : 'text-[#E8EDE2] hover:bg-[#254F38]'
@@ -51,7 +63,7 @@ export const RoleSwitcherBanner: React.FC<RoleSwitcherBannerProps> = ({
           </button>
           <button
             onClick={() => onSelectRole('donor')}
-            className={`px-2.5 py-1 rounded transition-colors ${
+            className={`px-2.5 py-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-[#F7F6F0] focus-visible:outline-none ${
               currentRole === 'donor'
                 ? 'bg-[#F7F6F0] text-[#183D2B] font-semibold shadow-xs'
                 : 'text-[#E8EDE2] hover:bg-[#254F38]'
@@ -61,7 +73,7 @@ export const RoleSwitcherBanner: React.FC<RoleSwitcherBannerProps> = ({
           </button>
           <button
             onClick={() => onSelectRole('ngo')}
-            className={`px-2.5 py-1 rounded transition-colors ${
+            className={`px-2.5 py-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-[#F7F6F0] focus-visible:outline-none ${
               currentRole === 'ngo'
                 ? 'bg-[#F7F6F0] text-[#183D2B] font-semibold shadow-xs'
                 : 'text-[#E8EDE2] hover:bg-[#254F38]'
@@ -71,7 +83,7 @@ export const RoleSwitcherBanner: React.FC<RoleSwitcherBannerProps> = ({
           </button>
           <button
             onClick={() => onSelectRole('volunteer')}
-            className={`px-2.5 py-1 rounded transition-colors ${
+            className={`px-2.5 py-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-[#F7F6F0] focus-visible:outline-none ${
               currentRole === 'volunteer'
                 ? 'bg-[#F7F6F0] text-[#183D2B] font-semibold shadow-xs'
                 : 'text-[#E8EDE2] hover:bg-[#254F38]'
@@ -85,7 +97,7 @@ export const RoleSwitcherBanner: React.FC<RoleSwitcherBannerProps> = ({
           <button
             onClick={handleReset}
             title="Reset to fresh pilot seed data"
-            className="flex items-center gap-1 px-2 py-1 text-[#A3B899] hover:text-white transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-[#A3B899] hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-[#F7F6F0] focus-visible:outline-none rounded"
           >
             <RotateCcw className="w-3 h-3" />
             <span className="hidden lg:inline">Reset Sandbox</span>

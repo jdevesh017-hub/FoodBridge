@@ -1,11 +1,13 @@
-import React from 'react';
-import { ShieldCheck, ArrowUpRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldCheck, ArrowUpRight, X, FileText } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (view: string) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const [activeModal, setActiveModal] = useState<'privacy' | 'terms' | null>(null);
+
   return (
     <footer className="bg-[#183D2B] text-[#F7F6F0] pt-16 pb-12 border-t border-[#2A523C]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,27 +37,42 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <p className="text-xs font-semibold tracking-wider uppercase text-[#A3B899]">Platform</p>
             <ul className="space-y-2 text-sm text-[#D3DECD]">
               <li>
-                <button onClick={() => onNavigate('landing')} className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('landing')}
+                  className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
+                >
                   Home
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('how_it_works')} className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('how_it_works')}
+                  className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
+                >
                   How It Works
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('ngo_discovery')} className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('ngo_discovery')}
+                  className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
+                >
                   Find Surplus Food
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('impact')} className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('impact')}
+                  className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
+                >
                   Our Impact
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('intelligence')} className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('intelligence')}
+                  className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
+                >
                   Waste Intelligence
                 </button>
               </li>
@@ -67,22 +84,34 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <p className="text-xs font-semibold tracking-wider uppercase text-[#A3B899]">Participation</p>
             <ul className="space-y-2 text-sm text-[#D3DECD]">
               <li>
-                <button onClick={() => onNavigate('donor_dashboard')} className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('donor_dashboard')}
+                  className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
+                >
                   Food Donor Portal
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('ngo_discovery')} className="hover:text-white transition-colors">
-                  NGO Registration
+                <button
+                  onClick={() => onNavigate('ngo_discovery')}
+                  className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
+                >
+                  NGO Discovery
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('volunteer_dashboard')} className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('volunteer_dashboard')}
+                  className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
+                >
                   Volunteer Dispatch
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('safety')} className="hover:text-white transition-colors">
+                <button
+                  onClick={() => onNavigate('safety')}
+                  className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
+                >
                   Safety Protocols
                 </button>
               </li>
@@ -107,15 +136,95 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-[#A3B899] gap-4">
           <p>© {new Date().getFullYear()} FoodBridge Foundation. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <span>Privacy Policy</span>
+          <div className="flex items-center gap-4 flex-wrap">
+            <button
+              onClick={() => setActiveModal('privacy')}
+              className="hover:text-white underline transition-colors focus-visible:ring-2 focus-visible:ring-white rounded"
+            >
+              Privacy Policy
+            </button>
             <span>·</span>
-            <span>Terms of Redistribution</span>
+            <button
+              onClick={() => setActiveModal('terms')}
+              className="hover:text-white underline transition-colors focus-visible:ring-2 focus-visible:ring-white rounded"
+            >
+              Terms of Redistribution
+            </button>
             <span>·</span>
-            <span>Food Safety Charter</span>
+            <button
+              onClick={() => onNavigate('safety')}
+              className="hover:text-white underline transition-colors focus-visible:ring-2 focus-visible:ring-white rounded"
+            >
+              Food Safety Charter
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Policy Modal Dialog */}
+      {activeModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="policy-dialog-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <div className="bg-[#F7F6F0] text-[#252923] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#183D2B]" />
+                <h3 id="policy-dialog-title" className="font-editorial text-lg font-bold text-[#183D2B]">
+                  {activeModal === 'privacy' ? 'Data Privacy & Local Storage Charter' : 'Terms of Non-Commercial Redistribution'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveModal(null)}
+                aria-label="Close dialog"
+                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-[#50544C] leading-relaxed">
+              {activeModal === 'privacy' ? (
+                <>
+                  <p>
+                    <strong>1. Local Prototype Storage:</strong> In this pilot demonstration, FoodBridge processes data locally in browser storage using schema-versioned adapters. No personal surveillance tracking or commercial telemetry is gathered.
+                  </p>
+                  <p>
+                    <strong>2. Geographic Location Privacy:</strong> Precise street addresses and coordinates are visible strictly to verified participants on active runs. Public discovery views mask coordinates to maintain donor facility privacy.
+                  </p>
+                  <p>
+                    <strong>3. Data Isolation:</strong> Resetting demonstration baseline records preserves all custom user-created donations and registered profiles without deletion.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    <strong>1. Strict Non-Commercial Purpose:</strong> All food logged, claimed, and redistributed via FoodBridge must be distributed free of charge to recipients experiencing food insecurity. Resale is strictly prohibited.
+                  </p>
+                  <p>
+                    <strong>2. Mandatory Safety Adherence:</strong> Donors and recipient kitchens agree to comply with codified FSSAI Schedule 4 regulations, maintaining continuous thermal logs and allergen declarations.
+                  </p>
+                  <p>
+                    <strong>3. Mutual Good-Faith Protection:</strong> FoodBridge provides structured decision support and temperature logging, connecting donors with verified community organizations under the Good Samaritan protections of Indian food safety law.
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-[#E2DFD2]">
+              <button
+                onClick={() => setActiveModal(null)}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded transition-colors focus-visible:ring-2 focus-visible:ring-[#183D2B]"
+              >
+                Understood & Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </footer>
   );
 };

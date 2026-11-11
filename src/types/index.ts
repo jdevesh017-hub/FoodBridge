@@ -28,17 +28,21 @@ export type StorageCondition =
   | 'ambient';      // Cool dry place <= 25°C
 
 export type DonationStatus =
-  | 'available'              // Published and open for NGO reservation
-  | 'locking'                // Transient lock being acquired
-  | 'reserved'               // Claimed by NGO, awaiting volunteer assignment
-  | 'assigned'               // Volunteer accepted task
-  | 'arrived_at_donor'       // Volunteer on-site at donor
-  | 'picked_up'              // Volunteer confirmed physical pickup
-  | 'in_transit'             // En route to NGO
-  | 'delivered'              // NGO signed off and verified
-  | 'cancelled_by_ngo'       // Released back to pool
-  | 'volunteer_cancelled'    // Reopened for urgent dispatch
-  | 'pickup_failed';         // Exception reported on-site (spoiled, closed, etc.)
+  | 'available'                   // Published and open for NGO reservation
+  | 'locking'                     // Transient lock being acquired
+  | 'reserved'                    // Claimed by NGO, awaiting volunteer assignment
+  | 'assigned'                    // Volunteer accepted task
+  | 'arrived_at_donor'            // Volunteer on-site at donor
+  | 'picked_up'                   // Volunteer confirmed physical pickup
+  | 'in_transit'                  // En route to NGO
+  | 'awaiting_ngo_confirmation'   // Volunteer delivered to NGO premises; awaiting NGO receipt verification
+  | 'delivered'                   // NGO signed off and verified
+  | 'cancelled_by_donor'          // Donor cancelled surplus
+  | 'cancelled_by_ngo'            // Released back to pool by NGO
+  | 'volunteer_cancelled'         // Reopened for urgent dispatch
+  | 'pickup_failed'               // Exception reported at pickup (spoiled, closed, etc.)
+  | 'delivery_issue'              // Exception reported during transit or at NGO handover
+  | 'disputed';                   // Discrepancy reported during NGO verification (quantity, damage, safety)
 
 export type SafetyComplianceStatus =
   | 'compliant'              // Meets all documented FSSAI guidelines
@@ -46,16 +50,24 @@ export type SafetyComplianceStatus =
   | 'incomplete_flagged'     // Critical parameters unrecorded (prep time/temp)
   | 'rejected_unsafe';       // Violates safety thresholds (danger zone breach)
 
-export interface QuantityLedger {
-  donorEstimatedKg: number;      // Self-reported by donor
-  servingsEstimate: number;      // Estimated meals (default ~350g/serving)
-  measuredKg?: number;           // Scale measured weight if available
-  pickupConfirmedKg?: number;    // Physically verified during volunteer handover
-}
+export type SafetyAssessmentOutcome =
+  | 'SUITABLE_FOR_REVIEW'
+  | 'NEEDS_REVIEW'
+  | 'REJECTED'
+  | 'INCOMPLETE_INFORMATION';
+
+export type TemperatureUnit = 'celsius' | 'fahrenheit';
+
+export type PackagingCondition =
+  | 'food_grade_sealed'
+  | 'covered_clean'
+  | 'loose_unsealed'
+  | 'damaged_packaging';
 
 export interface FoodSafetyAssessment {
   storageCondition: StorageCondition;
   temperatureCelsius?: number;
+  temperatureUnit?: TemperatureUnit;
   preparationTimestamp: string;  // ISO string
   safeConsumeUntil: string;      // ISO string
   hoursSincePreparation: number;
@@ -63,10 +75,93 @@ export interface FoodSafetyAssessment {
   fssaiRuleCitation: string;
   isAllergenLabelled: boolean;
   isCleanPackaged: boolean;
+  packagingCondition?: PackagingCondition;
+  foodHandlingNotes?: string;
+  bestBeforeTimestamp?: string;
   complianceStatus: SafetyComplianceStatus;
+  assessmentOutcome: SafetyAssessmentOutcome;
+  assessmentReasons: string[];
+  missingInformation: string[];
+  warnings: string[];
+  handlingGuidance: string[];
   safetyNotes: string[];
   requiresColdChainTransit: boolean;
   requiresThermalTransit: boolean;
+  assessedAt: string;
+}
+
+export interface FoodSafetyHistoryRecord {
+  assessedAt: string;
+  previousOutcome?: SafetyAssessmentOutcome;
+  newOutcome: SafetyAssessmentOutcome;
+  reasons: string[];
+  warnings: string[];
+  missingInformation: string[];
+  changesSummary: string;
+}
+
+export interface DeliveryImpactReceipt {
+  receiptId: string;
+  donationId: string;
+  deliveredAt: string;
+  donorName: string;
+  ngoName: string;
+  volunteerName: string;
+  foodName: string;
+  donorEstimatedKg: number;
+  pickupConfirmedKg: number;
+  deliveredKg: number;
+  mealsProvided: number;
+  co2PreventedKg: number;
+  fssaiRuleCitation: string;
+}
+
+export interface DiscrepancyReport {
+  reportedAt: string;
+  reportedByRole: 'ngo' | 'volunteer' | 'donor';
+  reporterName: string;
+  issueType: 'damaged_food' | 'quantity_mismatch' | 'safety_temp_breach' | 'packaging_breach' | 'facility_closed';
+  details: string;
+  actualWeightReceivedKg?: number;
+}
+
+export interface QuantityLedger {
+  donorEstimatedKg: number;
+  servingsEstimate: number;
+  measuredKg?: number;
+  pickupConfirmedKg?: number;
+  deliveredKg?: number;
+  discrepancyKg?: number;
+}
+
+export type AuditEventType =
+  | 'donation_created'
+  | 'donation_updated'
+  | 'donation_cancelled'
+  | 'reservation_locked'
+  | 'reservation_confirmed'
+  | 'reservation_released'
+  | 'task_accepted'
+  | 'volunteer_arrived'
+  | 'pickup_confirmed'
+  | 'pickup_failed'
+  | 'delivery_confirmed'
+  | 'delivery_issue_reported'
+  | 'volunteer_cancelled'
+  | 'dispute_raised'
+  | 'dispute_resolved';
+
+export interface AuditEvent {
+  id: string; // evt_...
+  entityId: string; // e.g. don_...
+  entityType: 'donation' | 'reservation' | 'task' | 'demand' | 'user';
+  actorId: string;
+  actorName: string;
+  actorRole: UserRole;
+  eventType: AuditEventType;
+  timestamp: string; // ISO string
+  metadata?: Record<string, any>;
+  note?: string;
 }
 
 export interface FoodDonation {
@@ -119,6 +214,9 @@ export interface FoodDonation {
   createdAt: string;
   updatedAt: string;
   photoUrl?: string;
+  impactReceipt?: DeliveryImpactReceipt;
+  discrepancyReport?: DiscrepancyReport;
+  safetyHistory?: FoodSafetyHistoryRecord[];
 }
 
 export interface VolunteerTask {
@@ -156,6 +254,7 @@ export interface UserProfile {
   lat: number;
   lng: number;
   verified: boolean;
+  isDemoUser?: boolean;           // Distinguishes pre-seeded demo accounts from registered users
   serviceRadiusKm?: number;      // For volunteers
   ngoRegistrationNumber?: string; // For NGOs
   organizationType?: string;      // For donors
@@ -186,4 +285,136 @@ export interface BetterDecisionRecommendation {
   confidenceScore: number;
   frequency: string;
   applicableDonorTypes: string[];
+}
+
+// --- Phase 4: Food Waste Intelligence & Analytics Types ---
+
+export interface NgoDemandRequest {
+  id: string;
+  ngoId: string;
+  ngoName: string;
+  category: FoodCategory;
+  requestedDailyKg: number;
+  servingsTarget: number;
+  requiredByDate: string; // ISO date
+  urgency: 'high' | 'medium' | 'normal';
+  status: 'active' | 'partially_fulfilled' | 'fulfilled' | 'expired';
+  fulfilledKg: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export type AnalyticsTimeRange = '7d' | '30d' | '90d' | 'all';
+
+export interface AnalyticsFilterOptions {
+  timeRange: AnalyticsTimeRange;
+  category?: 'all' | FoodCategory;
+  donorId?: string;
+  ngoId?: string;
+  volunteerId?: string;
+  status?: 'all' | DonationStatus;
+  origin?: 'all' | 'user_created' | 'curated_demo';
+}
+
+export interface FoodWasteKpis {
+  totalSurplusRecordedKg: number;
+  totalDeliveredKg: number;
+  recoveryRatePct: number;
+  pendingQuantitiesKg: {
+    available: number;
+    reserved: number;
+    assigned: number;
+    pickedUp: number;
+    totalPending: number;
+  };
+  failedPickupsCount: number;
+  averageDeliveryMinutes: number | null; // null if insufficient completed records with valid timestamps
+  completedDeliveriesCount: number;
+  totalRecordsCount: number;
+  hasSufficientData: boolean;
+}
+
+export interface CategorySurplusBreakdown {
+  category: FoodCategory;
+  recordedKg: number;
+  deliveredKg: number;
+  pendingKg: number;
+  percentageOfTotal: number;
+}
+
+export interface DailyTrendPoint {
+  date: string; // YYYY-MM-DD
+  label: string; // e.g. "Mon 10/12"
+  recordedKg: number;
+  deliveredKg: number;
+}
+
+export interface WeekdayDistributionPoint {
+  day: string; // "Mon", "Tue", etc.
+  dayIndex: number; // 0 (Sun) to 6 (Sat)
+  recordedKg: number;
+  count: number;
+  percentage: number;
+}
+
+export interface SupplyVsDemandMetric {
+  category: FoodCategory;
+  supplyRecordedKg: number;
+  demandRequestedKg: number;
+  reservedKg: number;
+  receivedKg: number;
+  unfulfilledDemandKg: number;
+  coverageRatioPct: number;
+}
+
+export interface RecurringPatternInsight {
+  id: string;
+  type: 'donor_recurring' | 'category_spike' | 'weekday_cadence' | 'location_hub';
+  title: string;
+  description: string;
+  supportingRecordCount: number;
+  analysisPeriod: string;
+  confidenceScore: number;
+  evidenceDetails: string;
+}
+
+export interface WastePreventionRecommendation {
+  id: string;
+  title: string;
+  detectedPattern: string;
+  supportingRecordCount: number;
+  analysisPeriod: string;
+  suggestedAction: string;
+  confidenceIndicator: 'high' | 'medium' | 'emerging';
+  confidenceScore: number;
+  category?: FoodCategory;
+  targetAudience: 'donor' | 'ngo' | 'all';
+  hasSufficientEvidence: boolean;
+}
+
+export interface RoleAnalyticsSummary {
+  role: UserRole;
+  donorStats?: {
+    ownSurplusKg: number;
+    ownDeliveredKg: number;
+    ownRecoveryRatePct: number;
+    topCategory: FoodCategory | null;
+    activeSurplusListingsCount: number;
+    completedDeliveriesCount: number;
+    recommendations: WastePreventionRecommendation[];
+  };
+  ngoStats?: {
+    totalReceivedKg: number;
+    mealsProvided: number;
+    activeReservationsCount: number;
+    demandFulfillmentPct: number;
+    unfulfilledKg: number;
+  };
+  volunteerStats?: {
+    completedDeliveriesCount: number;
+    totalDeliveredKg: number;
+    failedPickupsCount: number;
+    deliverySuccessRatePct: number;
+    avgDeliveryDurationMinutes: number | null;
+  };
 }

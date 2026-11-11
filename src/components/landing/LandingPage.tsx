@@ -40,15 +40,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <button
                 onClick={() => onNavigate('donor_dashboard')}
-                className="flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-all rounded shadow-xs"
+                className="flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-all rounded shadow-xs focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
               >
                 <span>Donate Surplus Food</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <button
-                onClick={() => onNavigate('how_it_works')}
-                className="flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-medium text-[#183D2B] hover:bg-[#E8EDE2] transition-colors rounded border border-[#183D2B]/30"
+                onClick={() => {
+                  const el = document.getElementById('how_it_works');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    onNavigate('how_it_works');
+                  }
+                }}
+                className="flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-medium text-[#183D2B] hover:bg-[#E8EDE2] transition-colors rounded border border-[#183D2B]/30 focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
               >
                 <span>Explore How It Works</span>
               </button>

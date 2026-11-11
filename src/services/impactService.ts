@@ -26,9 +26,9 @@ export class ImpactService {
     const volunteerIds = new Set<string>();
 
     verifiedUserDeliveries.forEach((d) => {
-      const kg = d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg;
+      const kg = d.quantity.deliveredKg || d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg;
       totalKg += kg;
-      totalMeals += d.quantity.servingsEstimate;
+      totalMeals += Math.round(kg / 0.35);
       if (d.donorId) donorIds.add(d.donorId);
       if (d.reservedByNgoId) ngoIds.add(d.reservedByNgoId);
       if (d.assignedVolunteerId) volunteerIds.add(d.assignedVolunteerId);

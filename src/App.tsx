@@ -89,11 +89,24 @@ export default function App() {
     else setCurrentView('landing');
   };
 
+  useEffect(() => {
+    if (currentView === 'how_it_works') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('how_it_works');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [currentView]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F6F0] text-[#252923]">
       {/* 1. Evaluation Sandbox Perspective Switcher */}
       <RoleSwitcherBanner
         currentRole={session.role}
+        isDemoMode={session.isDemoMode}
         onSelectRole={handleRoleSelect}
         activeUserName={session.profile?.organizationName || session.profile?.fullName}
         onShowToast={showToast}
@@ -136,34 +149,67 @@ export default function App() {
           </div>
         )}
 
-        {currentView === 'donor_dashboard' && (
+        {/* DONOR PORTAL VIEWS */}
+        {['donor_dashboard', 'donor_donations', 'donor_create', 'donor_history'].includes(currentView) && (
           <DonorDashboard
             user={session.profile}
+            initialTab={
+              currentView === 'donor_create'
+                ? 'create'
+                : currentView === 'donor_history'
+                ? 'history'
+                : currentView === 'donor_donations'
+                ? 'donations'
+                : 'overview'
+            }
             onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
             onShowToast={showToast}
             onNavigate={setCurrentView}
           />
         )}
 
-        {currentView === 'ngo_discovery' && (
+        {/* NGO PORTAL VIEWS */}
+        {['ngo_discovery', 'ngo_discover', 'ngo_reservations', 'ngo_deliveries'].includes(currentView) && (
           <NgoDashboard
             user={session.profile}
+            initialTab={
+              currentView === 'ngo_reservations' || currentView === 'ngo_deliveries'
+                ? 'my_claims'
+                : 'discover'
+            }
             onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
             onShowToast={showToast}
             onNavigate={setCurrentView}
           />
         )}
 
-        {currentView === 'volunteer_dashboard' && (
+        {/* VOLUNTEER / DELIVERY PARTNER PORTAL VIEWS */}
+        {['volunteer_dashboard', 'volunteer_available', 'volunteer_active', 'volunteer_history'].includes(currentView) && (
           <VolunteerDashboard
             user={session.profile}
+            initialTab={
+              currentView === 'volunteer_active'
+                ? 'active_run'
+                : currentView === 'volunteer_history'
+                ? 'history'
+                : 'available'
+            }
             onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
             onShowToast={showToast}
             onNavigate={setCurrentView}
           />
         )}
 
-        {currentView === 'intelligence' && <WasteIntelligenceDashboard />}
+        {currentView === 'intelligence' && (
+          <WasteIntelligenceDashboard
+            currentUser={session.profile}
+            currentRole={session.role}
+            onNavigate={(view) => {
+              setCurrentView(view);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        )}
 
         {currentView === 'safety' && <FoodSafetyPage />}
 

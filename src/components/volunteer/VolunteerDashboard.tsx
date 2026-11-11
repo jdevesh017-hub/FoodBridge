@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { volunteerService } from '../../services/volunteerService';
 import { FoodDonation, UserProfile } from '../../types';
+import { StatusBadge } from '../common/StatusBadge';
 import { LeafletMap } from '../map/LeafletMap';
-import { Truck, MapPin, CheckCircle2, AlertTriangle, Clock, ArrowRight, ShieldCheck, X, Navigation, RotateCcw } from 'lucide-react';
+import { Truck, MapPin, CheckCircle2, AlertTriangle, Clock, ArrowRight, ShieldCheck, X, Navigation, RotateCcw, AlertCircle, FileText, BarChart3 } from 'lucide-react';
 
 interface VolunteerDashboardProps {
   user: UserProfile | null;
   onViewSafetyAudit: (donation: FoodDonation) => void;
   onShowToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   onNavigate: (view: string) => void;
+  initialTab?: 'available' | 'active_run' | 'history';
 }
 
 export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
@@ -16,8 +18,9 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   onViewSafetyAudit,
   onShowToast,
   onNavigate,
+  initialTab = 'available',
 }) => {
-  const [activeTab, setActiveTab] = useState<'available' | 'active_run' | 'history'>('available');
+  const [activeTab, setActiveTab] = useState<'available' | 'active_run' | 'history'>(initialTab);
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
 
   // Modal states for exception handling & pickup verification
@@ -27,12 +30,34 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   const [failedReason, setFailedReason] = useState('Donor premises closed / unresponsive');
   const [showPickupModal, setShowPickupModal] = useState<FoodDonation | null>(null);
   const [verifiedWeightInput, setVerifiedWeightInput] = useState<string>('');
+  const [showArrivalAtNgoModal, setShowArrivalAtNgoModal] = useState<FoodDonation | null>(null);
+  const [arrivalNotesInput, setArrivalNotesInput] = useState<string>('Handed over thermal boxes to shelter staff');
 
   const volunteerId = user?.id || 'volunteer_alex';
   const volunteerName = user?.fullName || 'Alex Rivera';
   const volunteerPhone = user?.phone || '+91 98440 23901';
   const volunteerLat = user?.lat || 19.0720;
   const volunteerLng = user?.lng || 72.8710;
+
+  React.useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  // Handle keyboard Escape for all modals
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showPickupModal) setShowPickupModal(null);
+        else if (showArrivalAtNgoModal) setShowArrivalAtNgoModal(null);
+        else if (showCancelModal) setShowCancelModal(null);
+        else if (showFailedModal) setShowFailedModal(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showPickupModal, showArrivalAtNgoModal, showCancelModal, showFailedModal]);
 
   const availableTasks = volunteerService.getAvailableTasks(volunteerLat, volunteerLng);
   const myAssignments = volunteerService.getMyAssignments(volunteerId);
@@ -48,6 +73,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
       id: volunteerId,
       name: volunteerName,
       phone: volunteerPhone,
+      role: user?.role || 'volunteer',
     });
     if (res.success) {
       onShowToast(`Task accepted! Proceed to ${task.donorName} for collection.`, 'success');
@@ -61,7 +87,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   const handleConfirmArrival = (donationId: string) => {
     const res = volunteerService.confirmArrivalAtDonor(donationId, volunteerName);
     if (res.success) {
-      onShowToast('Arrival confirmed. Begin temperature & packaging audit.', 'info');
+      onShowToast('Arrival at donor confirmed. Begin temperature & packaging audit.', 'info');
     } else {
       onShowToast(res.error || 'Error recording arrival.', 'error');
     }
@@ -77,26 +103,24 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
     setShowPickupModal(null);
     if (res.success) {
-      onShowToast('Food secured in transit carrier. Route to NGO recipient.', 'success');
+      onShowToast('Food secured in transit carrier. In transit to NGO destination.', 'success');
     } else {
       onShowToast(res.error || 'Error confirming pickup.', 'error');
     }
   };
 
-  // Progression Step 4: Final Handover to NGO
-  const handleConfirmDelivery = (donation: FoodDonation) => {
-    const receiverName = donation.reservedByNgoName || 'Shelter Supervisor';
-    const res = volunteerService.confirmDeliveryToNgo(
-      donation.id,
-      volunteerName,
-      receiverName,
-      'Food inspected and accepted in full.'
-    );
+  // Progression Step 4: Arrived at NGO
+  const handleConfirmArrivalAtNgoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!showArrivalAtNgoModal) return;
+
+    const res = volunteerService.confirmArrivalAtNgo(showArrivalAtNgoModal.id, volunteerName, arrivalNotesInput);
+    setShowArrivalAtNgoModal(null);
+
     if (res.success) {
-      onShowToast(`Rescue completed! Food safely received at ${receiverName}.`, 'success');
-      setActiveTab('history');
+      onShowToast('Arrival at NGO marked! Food handed over to shelter; awaiting NGO verification.', 'info');
     } else {
-      onShowToast(res.error || 'Error completing delivery.', 'error');
+      onShowToast(res.error || 'Error marking arrival at NGO.', 'error');
     }
   };
 
@@ -143,35 +167,51 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           </h1>
           <p className="text-sm text-[#50544C] mt-1">
             Dispatch base: 22 Elm Street · Service radius: <span className="font-medium text-[#252923]">10 km</span> · Available for runs
+            {user?.verified === false && (
+              <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                <AlertTriangle className="w-3 h-3 text-amber-700" />
+                Courier Onboarding Pending
+              </span>
+            )}
           </p>
         </div>
 
-        {/* View Switcher Tabs */}
-        <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded self-start md:self-auto">
+        {/* View Switcher Tabs & Intelligence Shortcut */}
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
           <button
-            onClick={() => setActiveTab('available')}
-            className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
-              activeTab === 'available' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
-            }`}
+            onClick={() => onNavigate('intelligence')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#183D2B] bg-white border border-[#E2DFD2] hover:border-[#647C50] rounded transition-colors shadow-2xs cursor-pointer"
           >
-            Available Tasks ({availableTasks.length})
+            <BarChart3 className="w-3.5 h-3.5 text-[#C77A54]" />
+            <span>Delivery Performance</span>
           </button>
-          <button
-            onClick={() => setActiveTab('active_run')}
-            className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
-              activeTab === 'active_run' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
-            }`}
-          >
-            Active Run {myAssignments.length > 0 && <span className="ml-1 px-1.5 py-0.2 bg-[#C77A54] text-white rounded-full text-[10px]">1</span>}
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
-              activeTab === 'history' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
-            }`}
-          >
-            My Rescues ({deliveryHistory.length})
-          </button>
+
+          <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded">
+            <button
+              onClick={() => setActiveTab('available')}
+              className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
+                activeTab === 'available' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+              }`}
+            >
+              Available Tasks ({availableTasks.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('active_run')}
+              className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
+                activeTab === 'active_run' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+              }`}
+            >
+              Active Run {myAssignments.length > 0 && <span className="ml-1 px-1.5 py-0.2 bg-[#C77A54] text-white rounded-full text-[10px]">1</span>}
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
+                activeTab === 'history' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+              }`}
+            >
+              My Rescues ({deliveryHistory.length})
+            </button>
+          </div>
         </div>
       </div>
 
@@ -335,7 +375,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                 {/* 4-STAGE PROGRESSION STEPPER */}
                 <div className="space-y-3">
                   <p className="text-xs font-semibold uppercase tracking-wider text-[#647C50]">
-                    Dispatch Sequence & Verification
+                    Courier Dispatch Sequence
                   </p>
 
                   <div className="grid grid-cols-4 gap-2 text-center text-xs">
@@ -348,7 +388,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                     {/* Stage 2 */}
                     <div
                       className={`p-2.5 rounded border ${
-                        ['arrived_at_donor', 'in_transit', 'delivered'].includes(activeRun.status)
+                        ['arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation', 'delivered'].includes(activeRun.status)
                           ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold'
                           : 'bg-[#F7F6F0] border-[#E2DFD2] text-[#50544C]'
                       }`}
@@ -360,7 +400,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                     {/* Stage 3 */}
                     <div
                       className={`p-2.5 rounded border ${
-                        ['in_transit', 'delivered'].includes(activeRun.status)
+                        ['picked_up', 'in_transit', 'awaiting_ngo_confirmation', 'delivered'].includes(activeRun.status)
                           ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold'
                           : 'bg-[#F7F6F0] border-[#E2DFD2] text-[#50544C]'
                       }`}
@@ -372,13 +412,13 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                     {/* Stage 4 */}
                     <div
                       className={`p-2.5 rounded border ${
-                        activeRun.status === 'delivered'
+                        ['awaiting_ngo_confirmation', 'delivered'].includes(activeRun.status)
                           ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold'
                           : 'bg-[#F7F6F0] border-[#E2DFD2] text-[#50544C]'
                       }`}
                     >
                       <p className="text-[10px]">Step 4</p>
-                      <p>Delivered</p>
+                      <p>At NGO</p>
                     </div>
                   </div>
                 </div>
@@ -434,14 +474,28 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                     </button>
                   )}
 
-                  {activeRun.status === 'in_transit' && (
+                  {activeRun.status === 'picked_up' && (
                     <button
-                      onClick={() => handleConfirmDelivery(activeRun)}
-                      className="w-full py-3 text-sm font-semibold text-white bg-emerald-800 hover:bg-emerald-900 transition-colors rounded shadow-xs flex items-center justify-center gap-2"
+                      onClick={() => {
+                        setShowArrivalAtNgoModal(activeRun);
+                      }}
+                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Confirm Delivery & Sign-Off at NGO</span>
+                      <Truck className="w-4 h-4" />
+                      <span>Confirm Arrival at NGO Shelter</span>
                     </button>
+                  )}
+
+                  {activeRun.status === 'awaiting_ngo_confirmation' && (
+                    <div className="p-3 bg-purple-50 border border-purple-200 rounded text-center space-y-1">
+                      <p className="font-semibold text-xs text-purple-900 flex items-center justify-center gap-1.5">
+                        <Clock className="w-4 h-4 text-purple-700" />
+                        Handover Complete — Awaiting NGO Sign-Off
+                      </p>
+                      <p className="text-[11px] text-purple-700">
+                        Food has been delivered to {activeRun.reservedByNgoName}. The NGO supervisor will inspect and confirm actual receipt quantity.
+                      </p>
+                    </div>
                   )}
 
                   {/* Exception actions */}
@@ -504,7 +558,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                   </div>
                   <div className="flex items-center gap-4 font-mono tabular-nums">
                     <span className="font-bold text-[#183D2B]">
-                      {d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg} kg
+                      {d.quantity.deliveredKg || d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg} kg
                     </span>
                     <span className="text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded text-[11px] font-sans font-semibold">
                       VERIFIED HANDOVER
@@ -517,14 +571,79 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
         </div>
       )}
 
+      {/* MODAL: ARRIVAL AT NGO & HANDOVER NOTES */}
+      {showArrivalAtNgoModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="arrival-ngo-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <form
+            onSubmit={handleConfirmArrivalAtNgoSubmit}
+            className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
+          >
+            <div className="flex items-center gap-2 text-[#183D2B] border-b border-[#E2DFD2] pb-3">
+              <Truck className="w-5 h-5 text-[#647C50]" />
+              <h3 id="arrival-ngo-modal-title" className="font-editorial text-xl font-bold">
+                Confirm Arrival at NGO Facility
+              </h3>
+            </div>
+            <p className="text-xs text-[#50544C]">
+              Confirm arrival at <strong>{showArrivalAtNgoModal.reservedByNgoName}</strong> ({showArrivalAtNgoModal.ngoAddress}) and note handover details.
+            </p>
+
+            <div className="space-y-3 bg-white p-4 rounded border border-[#E2DFD2] text-xs">
+              <p className="font-semibold text-sm text-[#183D2B]">{showArrivalAtNgoModal.foodName}</p>
+              <p className="text-[#50544C]">Transported: {showArrivalAtNgoModal.quantity.pickupConfirmedKg || showArrivalAtNgoModal.quantity.donorEstimatedKg} kg</p>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#252923] mb-1">
+                  Courier Handover Notes
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Delivered 4 insulated thermal cambros to kitchen receiving door"
+                  value={arrivalNotesInput}
+                  onChange={(e) => setArrivalNotesInput(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
+              <button
+                type="button"
+                onClick={() => setShowArrivalAtNgoModal(null)}
+                className="px-4 py-2 text-xs text-[#50544C]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
+              >
+                Mark Handover Complete
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* MODAL: PHYSICAL PICKUP & WEIGHT CONFIRMATION */}
       {showPickupModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pickup-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
           <form
             onSubmit={handleConfirmPickupSubmit}
             className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
           >
-            <h3 className="font-editorial text-xl font-bold text-[#183D2B]">
+            <h3 id="pickup-modal-title" className="font-editorial text-xl font-bold text-[#183D2B]">
               Audit & Confirm Food Pickup
             </h3>
             <p className="text-xs text-[#50544C]">
@@ -574,12 +693,17 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
       {/* MODAL: EXCEPTION - VOLUNTEER CANCELLATION */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cancel-assignment-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
           <form
             onSubmit={handleCancelSubmit}
             className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
           >
-            <h3 className="font-editorial text-lg font-bold text-[#183D2B] flex items-center gap-1.5">
+            <h3 id="cancel-assignment-title" className="font-editorial text-lg font-bold text-[#183D2B] flex items-center gap-1.5">
               <RotateCcw className="w-5 h-5 text-[#C77A54]" />
               Release Assignment
             </h3>
@@ -624,12 +748,17 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
       {/* MODAL: EXCEPTION - FAILED PICKUP REPORT */}
       {showFailedModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="failed-pickup-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
           <form
             onSubmit={handleFailedPickupSubmit}
             className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
           >
-            <h3 className="font-editorial text-lg font-bold text-red-900 flex items-center gap-1.5">
+            <h3 id="failed-pickup-title" className="font-editorial text-lg font-bold text-red-900 flex items-center gap-1.5">
               <AlertTriangle className="w-5 h-5 text-red-700" />
               Report Incident / Failed Pickup
             </h3>
