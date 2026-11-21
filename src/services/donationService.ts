@@ -274,7 +274,7 @@ export class DonationService {
       ],
       createdAt: nowIso,
       updatedAt: nowIso,
-      photoUrl: params.photoUrl || '/src/assets/images/hero_food_redistribution_1794331332502.jpg',
+      photoUrl: params.photoUrl || '/images/hero_food_redistribution_1794331332502.jpg',
     };
 
     donationRepository.create(newDonation);

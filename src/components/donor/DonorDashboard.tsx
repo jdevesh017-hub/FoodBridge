@@ -274,7 +274,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
         pickupWindowStart: pickupStart,
         pickupWindowEnd: pickupEnd,
         specialHandlingNotes: specialNotes,
-        photoUrl: '/src/assets/images/hero_food_redistribution_1794331332502.jpg',
+        photoUrl: '/images/hero_food_redistribution_1794331332502.jpg',
       });
 
       if (result.success && result.donation) {

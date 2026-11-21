@@ -153,7 +153,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Left Side: Authentic Photography & Story */}
         <div className="hidden md:block md:col-span-5 relative bg-[#183D2B] text-white overflow-hidden">
           <img
-            src="/src/assets/images/auth_community_banner_1794331334583.jpg"
+            src="/images/auth_community_banner_1794331334583.jpg"
             alt="FoodBridge Community Volunteers"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover opacity-80"
