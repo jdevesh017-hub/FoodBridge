@@ -41,8 +41,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [ngoRegNo, setNgoRegNo] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [lat, setLat] = useState<string>('19.0596');
-  const [lng, setLng] = useState<string>('72.8295');
+  const [lat, setLat] = useState<string>('');
+  const [lng, setLng] = useState<string>('');
   const [serviceRadius, setServiceRadius] = useState<number>(10);
   const [isLocating, setIsLocating] = useState(false);
 
@@ -80,11 +80,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!lat.trim() || !lng.trim()) {
+      onShowToast('Coordinates are required. Choose a quick preset, click "Use Browser GPS", or enter coordinates manually.', 'error');
+      return;
+    }
+
     const parsedLat = parseFloat(lat);
     const parsedLng = parseFloat(lng);
 
     if (isNaN(parsedLat) || isNaN(parsedLng)) {
-      onShowToast('Please specify valid latitude and longitude coordinates.', 'error');
+      onShowToast('Please specify valid numeric latitude and longitude coordinates.', 'error');
+      return;
+    }
+
+    if (parsedLat < -90 || parsedLat > 90 || parsedLng < -180 || parsedLng > 180) {
+      onShowToast('Latitude must be between -90 and 90, and longitude between -180 and 180.', 'error');
       return;
     }
 
@@ -500,7 +510,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         type="number"
                         step="0.0001"
                         required
-                        placeholder="19.0760"
+                        placeholder="e.g. 19.0760"
                         value={lat}
                         onChange={(e) => setLat(e.target.value)}
                         className="w-full px-2.5 py-1 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
@@ -514,13 +524,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         type="number"
                         step="0.0001"
                         required
-                        placeholder="72.8777"
+                        placeholder="e.g. 72.8777"
                         value={lng}
                         onChange={(e) => setLng(e.target.value)}
                         className="w-full px-2.5 py-1 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
                       />
                     </div>
                   </div>
+                  {(!lat || !lng) && (
+                    <p className="text-[10px] text-[#C77A54] flex items-center gap-1 mt-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" />
+                      Coordinates required: select a preset above, use browser GPS, or type coordinates.
+                    </p>
+                  )}
                 </div>
 
                 {selectedRole === 'volunteer' && (
