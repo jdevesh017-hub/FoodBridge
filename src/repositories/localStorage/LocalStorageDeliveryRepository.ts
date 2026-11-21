@@ -376,6 +376,14 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
     if (index === -1) return { success: false, error: 'Donation not found.' };
 
     const item = donations[index];
+    const transitionCheck = LifecycleManager.validateTransition(item.status, 'disputed');
+    if (!transitionCheck.allowed) {
+      return {
+        success: false,
+        error: transitionCheck.error || `Cannot report discrepancy for donation with status '${item.status}'.`,
+      };
+    }
+
     item.status = 'disputed';
     const nowIso = new Date().toISOString();
     item.discrepancyReport = report;
