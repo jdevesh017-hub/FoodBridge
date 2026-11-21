@@ -4,14 +4,36 @@ import { volunteerService, calculateDistanceKm } from '../../services/volunteerS
 import { FoodCategory, FoodDonation, UserProfile } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
 import { LeafletMap } from '../map/LeafletMap';
-import { Filter, MapPin, Clock, ShieldCheck, Check, AlertCircle, ArrowRight, X, HeartHandshake, Eye, Scale, FileText, AlertTriangle, Info, BarChart3 } from 'lucide-react';
+import {
+  Filter,
+  MapPin,
+  Clock,
+  ShieldCheck,
+  Check,
+  AlertCircle,
+  ArrowRight,
+  X,
+  HeartHandshake,
+  Eye,
+  Scale,
+  FileText,
+  AlertTriangle,
+  Info,
+  BarChart3,
+  Truck,
+  RotateCcw,
+  CheckCircle2,
+  PackageCheck,
+  Layers,
+  Inbox
+} from 'lucide-react';
 
 interface NgoDashboardProps {
   user: UserProfile | null;
   onViewSafetyAudit: (donation: FoodDonation) => void;
   onShowToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   onNavigate: (view: string) => void;
-  initialTab?: 'discover' | 'my_claims' | 'history';
+  initialTab?: 'overview' | 'discover' | 'reservations' | 'deliveries' | 'history';
 }
 
 export const NgoDashboard: React.FC<NgoDashboardProps> = ({
@@ -19,9 +41,9 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
   onViewSafetyAudit,
   onShowToast,
   onNavigate,
-  initialTab = 'discover',
+  initialTab = 'overview',
 }) => {
-  const [activeTab, setActiveTab] = useState<'discover' | 'my_claims' | 'history'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'overview' | 'discover' | 'reservations' | 'deliveries' | 'history'>(initialTab);
   const [selectedDonationId, setSelectedDonationId] = useState<string | undefined>(undefined);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [dietaryFilter, setDietaryFilter] = useState<string>('all');
@@ -33,6 +55,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
   const [reservingDonation, setReservingDonation] = useState<FoodDonation | null>(null);
   const [confirmLocking, setConfirmLocking] = useState(false);
   const [receiptDonation, setReceiptDonation] = useState<FoodDonation | null>(null);
+  const [inspectDonation, setInspectDonation] = useState<FoodDonation | null>(null);
 
   // NGO Confirm Receipt Modal State
   const [confirmReceiptDonation, setConfirmReceiptDonation] = useState<FoodDonation | null>(null);
@@ -58,6 +81,15 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
     }
   }, [initialTab]);
 
+  const handleTabSelect = (tab: 'overview' | 'discover' | 'reservations' | 'deliveries' | 'history') => {
+    setActiveTab(tab);
+    if (tab === 'overview') onNavigate('ngo_discovery');
+    else if (tab === 'discover') onNavigate('ngo_discover');
+    else if (tab === 'reservations') onNavigate('ngo_reservations');
+    else if (tab === 'deliveries') onNavigate('ngo_deliveries');
+    else if (tab === 'history') onNavigate('ngo_history');
+  };
+
   // Handle keyboard Escape for all modals
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -66,11 +98,12 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
         else if (confirmReceiptDonation) setConfirmReceiptDonation(null);
         else if (discrepancyDonation) setDiscrepancyDonation(null);
         else if (receiptDonation) setReceiptDonation(null);
+        else if (inspectDonation) setInspectDonation(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [reservingDonation, confirmReceiptDonation, discrepancyDonation, receiptDonation]);
+  }, [reservingDonation, confirmReceiptDonation, discrepancyDonation, receiptDonation, inspectDonation]);
 
   const allDonations = donationService.getAllDonations();
 
@@ -96,20 +129,34 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
     return true;
   });
 
-  // My active claims / reservations (in-flight)
-  const myClaims = allDonations.filter(
+  // 1. My Reserved Donations (claimed by NGO, awaiting volunteer courier pickup)
+  const myReservations = allDonations.filter(
     (d) =>
       (d.reservedByNgoId === ngoId || (user?.role === 'public' && d.reservedByNgoId === 'ngo_hope_kitchen')) &&
-      d.status !== 'delivered' &&
-      d.status !== 'cancelled_by_ngo'
+      d.status === 'reserved'
   );
 
-  // Completed donation history
+  // 2. My Active Deliveries (courier assigned, en route, or arrived at NGO facility)
+  const myDeliveries = allDonations.filter(
+    (d) =>
+      (d.reservedByNgoId === ngoId || (user?.role === 'public' && d.reservedByNgoId === 'ngo_hope_kitchen')) &&
+      ['assigned', 'arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(d.status)
+  );
+
+  // 3. Completed donation history
   const completedHistory = allDonations.filter(
     (d) =>
       (d.reservedByNgoId === ngoId || (user?.role === 'public' && d.reservedByNgoId === 'ngo_hope_kitchen')) &&
       d.status === 'delivered'
   );
+
+  // Totals
+  const totalDeliveredMeals = completedHistory.reduce((acc, d) => {
+    return acc + (d.impactReceipt?.mealsProvided || d.quantity.servingsEstimate || Math.round((d.quantity.deliveredKg || d.quantity.donorEstimatedKg) / 0.35));
+  }, 0);
+  const totalDeliveredKg = completedHistory.reduce((acc, d) => {
+    return acc + (d.quantity.deliveredKg || d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg);
+  }, 0);
 
   const selectedDonation = allDonations.find((d) => d.id === selectedDonationId);
 
@@ -120,14 +167,16 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
       onShowToast(lockResult.error || 'Donation is no longer available.', 'error');
       return;
     }
+
     setReservingDonation(donation);
+    onShowToast('90-second atomic reservation lock acquired. Please confirm intake details.', 'info');
   };
 
   // Step 2: Confirm atomic reservation
-  const handleConfirmReservation = () => {
+  const handleConfirmReservationSubmit = () => {
     if (!reservingDonation) return;
-    setConfirmLocking(true);
 
+    setConfirmLocking(true);
     const result = donationService.confirmReservation(reservingDonation.id, {
       id: ngoId,
       name: ngoName,
@@ -141,91 +190,101 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
     setReservingDonation(null);
 
     if (result.success && result.donation) {
-      onShowToast(
-        `Reservation confirmed! "${result.donation.foodName}" has been routed to our volunteer dispatch pool.`,
-        'success'
-      );
-      setActiveTab('my_claims');
+      onShowToast(`Reservation confirmed for "${result.donation.foodName}". Volunteer courier requested.`, 'success');
+      handleTabSelect('reservations');
     } else {
-      onShowToast(result.error || 'Failed to complete reservation.', 'error');
+      onShowToast(result.error || 'Could not complete reservation.', 'error');
     }
   };
 
-  // NGO releases reservation if no longer needed
+  // Step 3: Release reservation back to pool
   const handleReleaseReservation = (donationId: string) => {
-    if (window.confirm('Release this reservation back to other local community kitchens?')) {
-      const res = donationService.releaseReservation(donationId, ngoName);
-      if (res.success) {
-        onShowToast('Donation released back to available pool.', 'info');
-      } else {
-        onShowToast(res.error || 'Could not release reservation.', 'error');
-      }
+    const res = donationService.releaseReservation(donationId, ngoName, 'Released by NGO');
+    if (res.success) {
+      onShowToast('Reservation released. The food is now available for other community organizations.', 'info');
+    } else {
+      onShowToast(res.error || 'Failed to release reservation.', 'error');
     }
   };
 
-  // Open Confirm Receipt Modal
+  // Step 4: Open Receipt Confirmation Dialog
   const handleOpenConfirmReceipt = (donation: FoodDonation) => {
     setConfirmReceiptDonation(donation);
-    setReceivedKgInput(
-      String(donation.quantity.pickupConfirmedKg || donation.quantity.measuredKg || donation.quantity.donorEstimatedKg)
-    );
+    const expectedKg = donation.quantity.pickupConfirmedKg || donation.quantity.measuredKg || donation.quantity.donorEstimatedKg;
+    setReceivedKgInput(String(expectedKg));
   };
 
-  // Submit NGO Confirm Receipt
-  const handleConfirmReceiptSubmit = (e: React.FormEvent) => {
+  // Step 5: Submit Receipt Confirmation
+  const handleSubmitConfirmReceipt = (e: React.FormEvent) => {
     e.preventDefault();
     if (!confirmReceiptDonation) return;
 
+    const receivedKg = Number(receivedKgInput);
+    if (isNaN(receivedKg) || receivedKg <= 0) {
+      onShowToast('Please enter a valid received quantity in kilograms.', 'error');
+      return;
+    }
+
     const res = volunteerService.confirmNgoReceipt(confirmReceiptDonation.id, ngoName, {
-      receivedKg: Number(receivedKgInput),
+      receivedKg,
       receivingSupervisorName: receivingSupervisorInput,
       notes: receiptNotesInput,
     });
 
     setConfirmReceiptDonation(null);
+
     if (res.success && res.donation) {
       onShowToast(
-        `Food receipt confirmed! Delivered weight verified: ${res.donation.quantity.deliveredKg} kg (~${res.donation.impactReceipt?.mealsProvided} meals). Impact logged.`,
+        `Verified Impact Receipt issued for "${res.donation.foodName}". ${Math.round(receivedKg / 0.35)} meals served to community.`,
         'success'
       );
-      setActiveTab('history');
+      if (res.donation.impactReceipt) {
+        setReceiptDonation(res.donation);
+      }
+      handleTabSelect('history');
     } else {
       onShowToast(res.error || 'Failed to confirm receipt.', 'error');
     }
   };
 
-  // Submit Discrepancy / Damage Report
-  const handleDiscrepancySubmit = (e: React.FormEvent) => {
+  // Discrepancy Reporting
+  const handleSubmitDiscrepancy = (e: React.FormEvent) => {
     e.preventDefault();
     if (!discrepancyDonation) return;
 
-    const res = volunteerService.reportDiscrepancy(discrepancyDonation.id, 'ngo', ngoName, {
-      issueType: issueTypeInput,
-      details: issueDetailsInput,
-      actualWeightReceivedKg: issueWeightInput ? Number(issueWeightInput) : undefined,
-    });
+    const res = volunteerService.reportDiscrepancy(
+      discrepancyDonation.id,
+      'ngo',
+      receivingSupervisorInput || ngoName,
+      {
+        issueType: issueTypeInput,
+        details: issueDetailsInput,
+        actualWeightReceivedKg: issueWeightInput ? Number(issueWeightInput) : undefined,
+      }
+    );
 
     setDiscrepancyDonation(null);
+
     if (res.success) {
-      onShowToast(`Delivery issue flagged. Recorded in mission timeline for donor review.`, 'warning');
+      onShowToast('Discrepancy report logged in permanent audit ledger. Quality flagged.', 'warning');
     } else {
-      onShowToast(res.error || 'Failed to report discrepancy.', 'error');
+      onShowToast(res.error || 'Failed to file report.', 'error');
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E2DFD2] pb-5">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      {/* Editorial Header with Facility Details & Portal Tabs */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E2DFD2] pb-6">
         <div>
           <span className="text-xs font-semibold tracking-wider uppercase text-[#647C50]">
-            Community Redistribution Portal · Verified NGO
+            Community Kitchen & Food Bank Operations
           </span>
           <h1 className="font-editorial text-3xl sm:text-4xl font-bold text-[#183D2B] mt-1">
-            Discover Available Surplus Food
+            {ngoName}
           </h1>
           <p className="text-sm text-[#50544C] mt-1">
-            Logged in organization: <span className="font-medium text-[#252923]">{ngoName}</span> · Active distribution zone: West Haven
+            Facility intake address: <span className="font-medium text-[#252923]">{ngoAddress}</span>
             {user?.verified === false && (
               <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
                 <AlertCircle className="w-3 h-3 text-amber-700" />
@@ -247,34 +306,239 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
 
           <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded">
             <button
-              onClick={() => setActiveTab('discover')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
+              onClick={() => handleTabSelect('overview')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+                activeTab === 'overview' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => handleTabSelect('discover')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
                 activeTab === 'discover' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
-              Available Surplus ({availableDonations.length})
+              Discover Food ({availableDonations.length})
             </button>
             <button
-              onClick={() => setActiveTab('my_claims')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
-                activeTab === 'my_claims' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+              onClick={() => handleTabSelect('reservations')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+                activeTab === 'reservations' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
-              My Active Deliveries ({myClaims.length})
+              My Reservations ({myReservations.length})
             </button>
             <button
-              onClick={() => setActiveTab('history')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
+              onClick={() => handleTabSelect('deliveries')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+                activeTab === 'deliveries' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+              }`}
+            >
+              Deliveries ({myDeliveries.length})
+            </button>
+            <button
+              onClick={() => handleTabSelect('history')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
                 activeTab === 'history' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
-              Completed History ({completedHistory.length})
+              History ({completedHistory.length})
             </button>
           </div>
         </div>
       </div>
 
-      {activeTab === 'discover' ? (
+      {/* ============================================================
+          PAGE 1: OVERVIEW TAB
+          ============================================================ */}
+      {activeTab === 'overview' && (
+        <div className="space-y-8">
+          {/* KPI Summary Strip */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+              <p className="text-xs text-[#647C50]">Active Reservations</p>
+              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">{myReservations.length}</p>
+              <p className="text-[11px] text-[#50544C] mt-1">Claimed lots awaiting courier pickup</p>
+            </div>
+
+            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+              <p className="text-xs text-[#647C50]">In-Flight Deliveries</p>
+              <p className="font-editorial text-3xl font-bold text-[#C77A54] tabular-nums mt-1">{myDeliveries.length}</p>
+              <p className="text-[11px] text-[#50544C] mt-1">Couriers en route or arrived</p>
+            </div>
+
+            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+              <p className="text-xs text-[#647C50]">Community Meals Served</p>
+              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
+                ~{totalDeliveredMeals}
+              </p>
+              <p className="text-[11px] text-[#50544C] mt-1">Across {completedHistory.length} verified handovers</p>
+            </div>
+
+            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+              <p className="text-xs text-[#647C50]">Total Surplus Received</p>
+              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
+                {Math.round(totalDeliveredKg)} <span className="text-sm font-sans font-normal text-[#50544C]">kg</span>
+              </p>
+              <p className="text-[11px] text-[#50544C] mt-1">Diverted to dining center</p>
+            </div>
+          </div>
+
+          {/* 2-Column Overview Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left: Urgent Surplus & Active Deliveries Snapshot (7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Active Deliveries Quick Tracker */}
+              {myDeliveries.length > 0 && (
+                <div className="bg-white p-5 rounded-lg border-2 border-[#183D2B] shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+                    <div className="flex items-center gap-2">
+                      <Truck className="w-5 h-5 text-[#C77A54]" />
+                      <h2 className="font-editorial text-lg font-bold text-[#183D2B]">
+                        Couriers En Route ({myDeliveries.length})
+                      </h2>
+                    </div>
+                    <button
+                      onClick={() => handleTabSelect('deliveries')}
+                      className="text-xs font-semibold text-[#183D2B] hover:underline"
+                    >
+                      Track All Deliveries →
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {myDeliveries.slice(0, 2).map((del) => (
+                      <div key={del.id} className="p-3 bg-[#F7F6F0] rounded border border-[#E2DFD2] space-y-2 text-xs">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-bold text-sm text-[#183D2B]">{del.foodName}</p>
+                            <p className="text-[#50544C]">From {del.donorName} · Courier: {del.assignedVolunteerName || 'Active courier'}</p>
+                          </div>
+                          <StatusBadge status={del.status} />
+                        </div>
+                        {del.status === 'awaiting_ngo_confirmation' && (
+                          <div className="pt-2 flex justify-end">
+                            <button
+                              onClick={() => handleOpenConfirmReceipt(del)}
+                              className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded flex items-center gap-1"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Sign Off Intake</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Available Surplus Lots Ready for Claim */}
+              <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+                  <div className="flex items-center gap-2">
+                    <Inbox className="w-4 h-4 text-[#647C50]" />
+                    <h2 className="font-editorial text-lg font-bold text-[#183D2B]">
+                      Surplus Open for Reservation Nearby
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => handleTabSelect('discover')}
+                    className="text-xs font-semibold text-[#183D2B] hover:underline"
+                  >
+                    View All Lots ({availableDonations.length}) →
+                  </button>
+                </div>
+
+                {availableDonations.length === 0 ? (
+                  <p className="text-xs text-[#737373] py-4 text-center">No unreserved surplus lots matching your radius right now.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {availableDonations.slice(0, 3).map((lot) => {
+                      const dist = calculateDistanceKm(ngoLat, ngoLng, lot.donorLat, lot.donorLng);
+                      return (
+                        <div key={lot.id} className="p-3.5 rounded border border-[#E2DFD2] bg-[#FBF9F5] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                          <div>
+                            <p className="font-semibold text-sm text-[#183D2B]">{lot.foodName}</p>
+                            <p className="text-[11px] text-[#50544C]">
+                              {lot.quantity.measuredKg || lot.quantity.donorEstimatedKg} kg · {dist.toFixed(1)} km away ({lot.donorName})
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => handleInitiateReservation(lot)}
+                            className="px-3 py-1.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded self-start sm:self-auto cursor-pointer"
+                          >
+                            Reserve Food Lot
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Dining Center Profile & Recent Handover History (5 cols) */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs space-y-3">
+                <div className="flex items-center gap-2 border-b border-[#E2DFD2] pb-3">
+                  <PackageCheck className="w-4 h-4 text-[#183D2B]" />
+                  <h3 className="font-editorial text-lg font-bold text-[#183D2B]">Kitchen Facility Profile</h3>
+                </div>
+
+                <div className="text-xs space-y-2">
+                  <div className="p-3 bg-[#F7F6F0] rounded border border-[#E2DFD2] space-y-1">
+                    <p className="text-[#647C50]">Shelter / Dining Hall</p>
+                    <p className="font-bold text-[#183D2B] text-sm">{ngoName}</p>
+                    <p className="text-[#50544C]">{ngoAddress}</p>
+                  </div>
+                  <p className="text-[11px] text-[#50544C]">
+                    Accredited distribution center receiving verified surplus for community meal distribution in western Mumbai.
+                  </p>
+                </div>
+              </div>
+
+              {/* Recent Completed Receipts */}
+              <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+                  <h3 className="font-editorial text-lg font-bold text-[#183D2B]">Recent Intakes</h3>
+                  <button
+                    onClick={() => handleTabSelect('history')}
+                    className="text-xs font-semibold text-[#183D2B] hover:underline"
+                  >
+                    View All ({completedHistory.length})
+                  </button>
+                </div>
+
+                {completedHistory.length === 0 ? (
+                  <p className="text-xs text-[#737373] py-4 text-center">No delivered handovers on record yet.</p>
+                ) : (
+                  <div className="space-y-2.5 text-xs">
+                    {completedHistory.slice(0, 3).map((item) => (
+                      <div key={item.id} className="p-2.5 bg-[#FBF9F5] rounded border border-[#E2DFD2] flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold text-[#183D2B]">{item.foodName}</p>
+                          <p className="text-[10px] text-[#50544C]">{new Date(item.updatedAt || item.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <span className="font-bold font-mono text-emerald-800">
+                          {item.quantity.deliveredKg || item.quantity.donorEstimatedKg} kg
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================
+          PAGE 2: DISCOVER FOOD TAB (AVAILABLE POOL + MAP)
+          ============================================================ */}
+      {activeTab === 'discover' && (
         <>
           {/* Filter Bar */}
           <div className="bg-white p-4 rounded-lg border border-[#E2DFD2] shadow-xs flex flex-wrap items-center justify-between gap-4 text-xs">
@@ -371,113 +635,84 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                       key={donation.id}
                       onClick={() => setSelectedDonationId(donation.id)}
                       className={`bg-white rounded-lg border p-5 transition-all cursor-pointer shadow-xs ${
-                        isSelected
-                          ? 'border-[#183D2B] ring-1 ring-[#183D2B]'
-                          : 'border-[#E2DFD2] hover:border-[#647C50]'
+                        isSelected ? 'border-[#183D2B] ring-1 ring-[#183D2B]' : 'border-[#E2DFD2] hover:border-[#647C50]'
                       }`}
                     >
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        {/* Food Image */}
-                        <div className="w-full sm:w-36 h-28 shrink-0 rounded overflow-hidden bg-[#E8EDE2] relative">
-                          <img
-                            src={donation.photoUrl || '/src/assets/images/hero_food_redistribution_1794331332502.jpg'}
-                            alt={donation.foodName}
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover"
-                          />
-                          <span className="absolute bottom-1.5 left-1.5 bg-[#183D2B]/90 text-white text-[10px] px-2 py-0.5 rounded font-mono tabular-nums">
-                            {effectiveKg} kg
-                          </span>
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#647C50]">
+                              {donation.donorName} · {donation.donorType}
+                            </span>
+                            <h3 className="font-editorial text-xl font-bold text-[#183D2B] mt-0.5">
+                              {donation.foodName}
+                            </h3>
+                            <p className="text-xs text-[#50544C] mt-0.5">{donation.description}</p>
+                          </div>
+
+                          <div className="text-right font-mono tabular-nums">
+                            <span className="font-bold text-lg text-[#183D2B]">{effectiveKg} kg</span>
+                            <p className="text-[11px] text-[#50544C] font-sans">
+                              ~{donation.quantity.servingsEstimate} portions
+                            </p>
+                          </div>
                         </div>
 
-                        {/* Content */}
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="text-[11px] uppercase tracking-wider text-[#647C50] font-semibold">
-                                {donation.donorType} · {donation.donorName}
-                              </p>
-                              <h3 className="font-editorial text-lg font-bold text-[#183D2B] leading-tight">
-                                {donation.foodName}
-                              </h3>
-                            </div>
-                            <span className="text-xs font-mono font-semibold text-[#183D2B] bg-[#E8EDE2] px-2 py-0.5 rounded">
-                              ~{donation.quantity.servingsEstimate} meals
-                            </span>
+                        {/* Metadata Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-[#F7F6F0] p-3 rounded text-xs border border-[#E2DFD2]">
+                          <div>
+                            <span className="text-[#647C50]">Safety Verdict:</span>
+                            <p className="font-medium text-[#183D2B] capitalize">
+                              {donation.safety.assessmentOutcome.replace(/_/g, ' ')}
+                            </p>
                           </div>
-
-                          <p className="text-xs text-[#50544C] line-clamp-2">
-                            {donation.description}
-                          </p>
-
-                          {/* Food Safety & Thermal Compliance Row */}
-                          <div className="flex items-center gap-2 pt-1 flex-wrap text-[11px]">
-                            <span
-                              className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded ${
-                                donation.safety.assessmentOutcome === 'SUITABLE_FOR_REVIEW'
-                                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                  : donation.safety.assessmentOutcome === 'NEEDS_REVIEW'
-                                  ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                                  : donation.safety.assessmentOutcome === 'INCOMPLETE_INFORMATION'
-                                  ? 'bg-orange-50 text-orange-800 border border-orange-200'
-                                  : 'bg-red-50 text-red-800 border border-red-200'
-                              }`}
-                            >
-                              <ShieldCheck className="w-3 h-3" />
-                              <span>{(donation.safety.assessmentOutcome || donation.safety.complianceStatus).replace(/_/g, ' ')}</span>
-                            </span>
-                            <span className="text-[#50544C]">
-                              {donation.safety.storageCondition.replace(/_/g, ' ')}
-                              {donation.safety.temperatureCelsius !== undefined
-                                ? ` · ${donation.safety.temperatureCelsius}°${donation.safety.temperatureUnit === 'fahrenheit' ? 'F' : 'C'}`
-                                : ''}
-                            </span>
-                            {donation.safety.warnings && donation.safety.warnings.length > 0 && (
-                              <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[10px] flex items-center gap-0.5">
-                                <AlertTriangle className="w-2.5 h-2.5" />
-                                {donation.safety.warnings.length} advisory
-                              </span>
-                            )}
+                          <div>
+                            <span className="text-[#647C50]">Storage Method:</span>
+                            <p className="font-medium text-[#252923] capitalize">
+                              {donation.safety.storageCondition.replace(/_/g, ' ')} ({donation.safety.temperatureCelsius !== undefined ? `${donation.safety.temperatureCelsius}°C` : '--'})
+                            </p>
                           </div>
-
-                          {/* Metadata row */}
-                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#50544C] pt-1 border-t border-[#E2DFD2]">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3 text-[#C77A54]" />
-                              {donation.donorAddress.split(',')[0]}
-                            </span>
-                            <span>·</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-[#647C50]" />
-                              Pickup before {new Date(donation.pickupWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
+                          <div>
+                            <span className="text-[#647C50]">Pickup Window:</span>
+                            <p className="font-medium text-[#252923] flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-[#C77A54]" />
+                              <span>Until {new Date(donation.pickupWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </p>
                           </div>
+                        </div>
 
-                          {/* Action Row */}
-                          <div className="pt-2 flex items-center justify-between gap-3">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onViewSafetyAudit(donation);
-                              }}
-                              className="text-xs text-[#647C50] hover:text-[#183D2B] font-medium flex items-center gap-1"
-                            >
-                              <ShieldCheck className="w-3.5 h-3.5 text-[#183D2B]" />
-                              <span>View FSSAI Audit</span>
-                            </button>
+                        {/* Dietary Tags */}
+                        <div className="flex flex-wrap gap-1">
+                          {donation.dietaryTags.map((t) => (
+                            <span key={t} className="text-[10px] font-medium bg-[#E8EDE2] text-[#183D2B] px-2 py-0.5 rounded capitalize">
+                              {t.replace('_', ' ')}
+                            </span>
+                          ))}
+                        </div>
 
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleInitiateReservation(donation);
-                              }}
-                              className="px-4 py-1.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-2xs"
-                            >
-                              Reserve This Donation
-                            </button>
-                          </div>
+                        {/* Actions */}
+                        <div className="flex items-center justify-between pt-2 border-t border-[#E2DFD2]">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onViewSafetyAudit(donation);
+                            }}
+                            className="text-xs text-[#647C50] hover:text-[#183D2B] underline"
+                          >
+                            Inspect FSSAI Audit Log
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleInitiateReservation(donation);
+                            }}
+                            className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer"
+                          >
+                            Reserve Food Lot
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -486,14 +721,15 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               )}
             </div>
 
-            {/* Right Map Column (Sticky) */}
+            {/* Right Map Column */}
             <div className="lg:col-span-5 sticky top-28 space-y-3">
-              <div className="h-[520px] w-full">
+              <div className="h-[560px] w-full">
                 <LeafletMap
                   donations={availableDonations}
                   selectedDonationId={selectedDonationId}
                   onSelectDonation={(id) => setSelectedDonationId(id)}
-                  showRouteForDonation={selectedDonation}
+                  centerLat={ngoLat}
+                  centerLng={ngoLng}
                 />
               </div>
               <p className="text-[11px] text-[#50544C] text-center">
@@ -502,143 +738,217 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
             </div>
           </div>
         </>
-      ) : activeTab === 'my_claims' ? (
-        /* MY RESERVATIONS TAB */
+      )}
+
+      {/* ============================================================
+          PAGE 3: MY RESERVATIONS TAB (RESERVED, AWAITING COURIER)
+          ============================================================ */}
+      {activeTab === 'reservations' && (
         <div className="space-y-4">
           <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
             <h2 className="font-editorial text-xl font-bold text-[#183D2B] mb-1">
-              Active Community Reservations & Deliveries
+              My Food Reservations
             </h2>
             <p className="text-xs text-[#50544C]">
-              Surplus lots currently locked and dispatched for delivery to {ngoName}.
+              Food donations currently reserved by your organization awaiting volunteer courier pickup.
             </p>
           </div>
 
-          {myClaims.length === 0 ? (
+          {myReservations.length === 0 ? (
             <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-3">
-              <p className="font-editorial text-lg text-[#50544C]">You have no active food reservations.</p>
-              <p className="text-xs text-[#737373]">Explore available surplus to request meals for your dining hall.</p>
+              <Clock className="w-8 h-8 text-[#647C50] mx-auto opacity-60" />
+              <p className="font-editorial text-lg text-[#50544C]">You have no pending reservations.</p>
+              <p className="text-xs text-[#737373]">Browse available surplus to claim fresh meals for your dining hall.</p>
               <button
-                onClick={() => setActiveTab('discover')}
+                onClick={() => handleTabSelect('discover')}
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
               >
-                <span>Browse Surplus Food</span>
+                <span>Browse Available Food</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {myClaims.map((claim) => {
-                const effectiveKg = claim.quantity.pickupConfirmedKg || claim.quantity.measuredKg || claim.quantity.donorEstimatedKg;
-                return (
-                  <div key={claim.id} className="bg-white rounded-lg border border-[#E2DFD2] p-5 space-y-4 shadow-xs">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <span className="text-[11px] font-semibold text-[#647C50] uppercase tracking-wider">
-                          Donor: {claim.donorName}
-                        </span>
-                        <h3 className="font-editorial text-lg font-bold text-[#183D2B] mt-0.5">
-                          {claim.foodName}
-                        </h3>
-                      </div>
-                      <StatusBadge status={claim.status} />
+              {myReservations.map((claim) => (
+                <div key={claim.id} className="bg-white rounded-lg border border-[#E2DFD2] p-5 space-y-4 shadow-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[11px] font-semibold text-[#647C50] uppercase tracking-wider">
+                        Donor: {claim.donorName}
+                      </span>
+                      <h3 className="font-editorial text-lg font-bold text-[#183D2B] mt-0.5">
+                        {claim.foodName}
+                      </h3>
+                      <p className="text-xs text-[#50544C]">{claim.donorAddress}</p>
                     </div>
+                    <StatusBadge status={claim.status} />
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3 text-xs bg-[#F7F6F0] p-3 rounded border border-[#E2DFD2]">
-                      <div>
-                        <p className="text-[#647C50]">Quantity Reserved</p>
-                        <p className="font-bold text-[#183D2B] font-mono tabular-nums text-sm">
-                          {claim.quantity.pickupConfirmedKg || claim.quantity.measuredKg || claim.quantity.donorEstimatedKg} kg (~{claim.quantity.servingsEstimate} meals)
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[#647C50]">Assigned Delivery Partner</p>
-                        <p className="font-medium text-[#252923]">
-                          {claim.assignedVolunteerName ? (
-                            <span>{claim.assignedVolunteerName} ({claim.volunteerPhone || 'Active run'})</span>
-                          ) : (
-                            <span className="italic text-[#737373]">Dispatched to courier fleet</span>
-                          )}
-                        </p>
-                      </div>
+                  <div className="grid grid-cols-2 gap-3 text-xs bg-[#F7F6F0] p-3 rounded border border-[#E2DFD2]">
+                    <div>
+                      <p className="text-[#647C50]">Reserved Quantity</p>
+                      <p className="font-bold text-[#183D2B] font-mono tabular-nums text-sm">
+                        {claim.quantity.measuredKg || claim.quantity.donorEstimatedKg} kg
+                      </p>
+                      <p className="text-[10px] text-[#50544C]">~{claim.quantity.servingsEstimate} meals</p>
                     </div>
-
-                    {/* Progress tracking */}
-                    <div className="space-y-1 text-xs">
-                      <p className="font-semibold text-[#252923]">Redistribution Sequence</p>
-                      <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-[#50544C] flex-wrap">
-                        <span className="font-semibold text-[#183D2B]">1. Reserved</span>
-                        <span>→</span>
-                        <span className={['assigned', 'arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation', 'delivered'].includes(claim.status) ? 'font-semibold text-[#183D2B]' : ''}>
-                          2. Courier Assigned
-                        </span>
-                        <span>→</span>
-                        <span className={['picked_up', 'in_transit', 'awaiting_ngo_confirmation', 'delivered'].includes(claim.status) ? 'font-semibold text-[#183D2B]' : ''}>
-                          3. In Transit
-                        </span>
-                        <span>→</span>
-                        <span className={['awaiting_ngo_confirmation', 'delivered'].includes(claim.status) ? 'font-semibold text-purple-800' : ''}>
-                          4. At NGO Facility
-                        </span>
-                        <span>→</span>
-                        <span className={claim.status === 'delivered' ? 'font-semibold text-emerald-700' : ''}>
-                          5. Receipt Confirmed
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* NGO ACTION BAR */}
-                    <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-t border-[#E2DFD2]">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => onViewSafetyAudit(claim)}
-                          className="text-xs text-[#183D2B] hover:underline font-medium"
-                        >
-                          Safety Log
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setDiscrepancyDonation(claim);
-                            setIssueDetailsInput('');
-                          }}
-                          className="text-xs text-[#C77A54] hover:underline font-medium flex items-center gap-1"
-                        >
-                          <AlertTriangle className="w-3 h-3 text-[#C77A54]" />
-                          Report Issue
-                        </button>
-                      </div>
-
-                      <div className="flex items-center gap-2 self-end sm:self-auto">
-                        {claim.status === 'reserved' && (
-                          <button
-                            onClick={() => handleReleaseReservation(claim.id)}
-                            className="text-xs text-[#C77A54] hover:underline font-medium"
-                          >
-                            Cancel Reservation
-                          </button>
-                        )}
-
-                        {/* NGO Confirm Receipt Button: Enabled when awaiting NGO confirmation or arrived */}
-                        {['awaiting_ngo_confirmation', 'picked_up', 'in_transit'].includes(claim.status) && (
-                          <button
-                            onClick={() => handleOpenConfirmReceipt(claim)}
-                            className="px-3.5 py-1.5 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded shadow-xs flex items-center gap-1.5"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Confirm Food Received</span>
-                          </button>
-                        )}
-                      </div>
+                    <div>
+                      <p className="text-[#647C50]">Pickup Window</p>
+                      <p className="font-medium text-[#252923]">
+                        Until {new Date(claim.pickupWindowEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      <p className="text-[10px] text-[#C77A54]">Courier dispatch pending</p>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Actions */}
+                  <div className="pt-2 flex items-center justify-between border-t border-[#E2DFD2]">
+                    <button
+                      onClick={() => onViewSafetyAudit(claim)}
+                      className="text-xs text-[#183D2B] hover:underline font-medium"
+                    >
+                      Safety Audit
+                    </button>
+
+                    <button
+                      onClick={() => handleReleaseReservation(claim.id)}
+                      className="text-xs text-[#C77A54] hover:underline font-medium"
+                    >
+                      Release Reservation
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      ) : (
-        /* COMPLETED DONATION HISTORY TAB */
+      )}
+
+      {/* ============================================================
+          PAGE 4: DELIVERIES TAB (IN-FLIGHT COURIERS & INTAKE SIGN-OFF)
+          ============================================================ */}
+      {activeTab === 'deliveries' && (
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <h2 className="font-editorial text-xl font-bold text-[#183D2B] mb-1">
+              Active Delivery Runs & Intake Sign-Off
+            </h2>
+            <p className="text-xs text-[#50544C]">
+              Monitor volunteer couriers currently transporting food to {ngoName} and verify physical handovers.
+            </p>
+          </div>
+
+          {myDeliveries.length === 0 ? (
+            <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-3">
+              <Truck className="w-8 h-8 text-[#647C50] mx-auto opacity-60" />
+              <p className="font-editorial text-lg text-[#50544C]">No active deliveries in transit.</p>
+              <p className="text-xs text-[#737373]">
+                Once a volunteer accepts a pickup assignment for your reserved food, live tracking will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {myDeliveries.map((claim) => (
+                <div key={claim.id} className="bg-white rounded-lg border border-[#E2DFD2] p-5 space-y-4 shadow-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[11px] font-semibold text-[#647C50] uppercase tracking-wider">
+                        From: {claim.donorName}
+                      </span>
+                      <h3 className="font-editorial text-lg font-bold text-[#183D2B] mt-0.5">
+                        {claim.foodName}
+                      </h3>
+                    </div>
+                    <StatusBadge status={claim.status} />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs bg-[#F7F6F0] p-3 rounded border border-[#E2DFD2]">
+                    <div>
+                      <p className="text-[#647C50]">Quantity Ledger</p>
+                      <p className="font-bold text-[#183D2B] font-mono tabular-nums text-sm">
+                        {claim.quantity.pickupConfirmedKg || claim.quantity.measuredKg || claim.quantity.donorEstimatedKg} kg
+                      </p>
+                      <p className="text-[10px] text-[#50544C]">
+                        {claim.quantity.pickupConfirmedKg ? 'Scale-Verified Pickup' : 'Donor Estimate'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[#647C50]">Assigned Delivery Partner</p>
+                      <p className="font-medium text-[#252923]">
+                        {claim.assignedVolunteerName || 'Courier Assigned'}
+                      </p>
+                      {claim.volunteerPhone && (
+                        <p className="text-[10px] text-[#50544C]">Phone: {claim.volunteerPhone}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 5-Stage Stepper */}
+                  <div className="space-y-1 text-xs">
+                    <p className="font-semibold text-[#252923]">Delivery Sequence</p>
+                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-[#50544C] flex-wrap">
+                      <span className="font-semibold text-[#183D2B]">1. Reserved</span>
+                      <span>→</span>
+                      <span className={['assigned', 'arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(claim.status) ? 'font-semibold text-[#183D2B]' : ''}>
+                        2. Courier Assigned
+                      </span>
+                      <span>→</span>
+                      <span className={['picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(claim.status) ? 'font-semibold text-[#183D2B]' : ''}>
+                        3. In Transit
+                      </span>
+                      <span>→</span>
+                      <span className={['awaiting_ngo_confirmation'].includes(claim.status) ? 'font-bold text-purple-800' : ''}>
+                        4. At Facility
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* ACTION BAR */}
+                  <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-t border-[#E2DFD2]">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => onViewSafetyAudit(claim)}
+                        className="text-xs text-[#183D2B] hover:underline font-medium"
+                      >
+                        Safety Log
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setDiscrepancyDonation(claim);
+                          setIssueDetailsInput('');
+                        }}
+                        className="text-xs text-[#C77A54] hover:underline font-medium flex items-center gap-1"
+                      >
+                        <AlertTriangle className="w-3 h-3 text-[#C77A54]" />
+                        <span>Report Issue</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      {/* Confirm Receipt Button */}
+                      {['awaiting_ngo_confirmation', 'picked_up', 'in_transit'].includes(claim.status) && (
+                        <button
+                          onClick={() => handleOpenConfirmReceipt(claim)}
+                          className="px-3.5 py-1.5 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded shadow-xs flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Confirm Food Received</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============================================================
+          PAGE 5: HISTORY TAB (COMPLETED RECEIPTS)
+          ============================================================ */}
+      {activeTab === 'history' && (
         <div className="space-y-4">
           <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
             <h2 className="font-editorial text-xl font-bold text-[#183D2B] mb-1">
@@ -651,6 +961,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
 
           {completedHistory.length === 0 ? (
             <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-3">
+              <CheckCircle2 className="w-8 h-8 text-[#647C50] mx-auto opacity-60" />
               <p className="font-editorial text-lg text-[#50544C]">No completed receipts recorded yet.</p>
               <p className="text-xs text-[#737373]">Completed handovers will generate official verified impact receipts here.</p>
             </div>
@@ -709,6 +1020,10 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
         </div>
       )}
 
+      {/* ============================================================
+          SHARED NGO MODALS
+          ============================================================ */}
+
       {/* RESERVATION CONFIRMATION DIALOG (Atomic Locking Step) */}
       {reservingDonation && (
         <div
@@ -751,150 +1066,38 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               </div>
             </div>
 
-            {/* Dedicated Food Safety & Quality Review Section */}
-            <div className="bg-white p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
-              <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-2">
-                <span className="font-semibold text-[#183D2B] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                  <ShieldCheck className="w-4 h-4 text-[#C77A54]" />
-                  Food Safety Assessment Review
-                </span>
-                <span
-                  className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded text-[10px] ${
-                    reservingDonation.safety.assessmentOutcome === 'SUITABLE_FOR_REVIEW'
-                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                      : reservingDonation.safety.assessmentOutcome === 'NEEDS_REVIEW'
-                      ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                      : reservingDonation.safety.assessmentOutcome === 'INCOMPLETE_INFORMATION'
-                      ? 'bg-orange-50 text-orange-800 border border-orange-200'
-                      : 'bg-red-50 text-red-800 border border-red-200'
-                  }`}
-                >
-                  {(reservingDonation.safety.assessmentOutcome || reservingDonation.safety.complianceStatus).replace(/_/g, ' ')}
-                </span>
-              </div>
-
-              {/* Assessment parameters */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] bg-[#F7F6F0] p-2.5 rounded border border-[#E2DFD2]">
-                <div>
-                  <p className="text-[#647C50]">Storage Method</p>
-                  <p className="font-medium text-[#252923] capitalize">
-                    {reservingDonation.safety.storageCondition.replace(/_/g, ' ')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[#647C50]">Recorded Temp</p>
-                  <p className="font-bold text-[#183D2B] font-mono">
-                    {reservingDonation.safety.temperatureCelsius !== undefined
-                      ? `${reservingDonation.safety.temperatureCelsius}°${reservingDonation.safety.temperatureUnit === 'fahrenheit' ? 'F' : 'C'}`
-                      : 'Not recorded'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[#647C50]">Prepared</p>
-                  <p className="font-medium text-[#252923]">
-                    ~{Math.round(reservingDonation.safety.hoursSincePreparation * 60)} mins ago
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[#647C50]">Packaging</p>
-                  <p className="font-medium text-[#252923] capitalize">
-                    {(reservingDonation.safety.packagingCondition || (reservingDonation.safety.isCleanPackaged ? 'food_grade_sealed' : 'unsealed')).replace(/_/g, ' ')}
-                  </p>
-                </div>
-              </div>
-
-              {/* Warnings and Missing Info */}
-              {reservingDonation.safety.warnings && reservingDonation.safety.warnings.length > 0 && (
-                <div className="p-2.5 bg-amber-50 border border-amber-200 rounded text-[11px] space-y-1 text-amber-950">
-                  <p className="font-semibold flex items-center gap-1 text-amber-900">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
-                    Advisory Considerations:
-                  </p>
-                  <ul className="list-disc list-inside space-y-0.5 text-amber-900 pl-1">
-                    {reservingDonation.safety.warnings.map((w, idx) => (
-                      <li key={idx}>{w}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {reservingDonation.safety.missingInformation && reservingDonation.safety.missingInformation.length > 0 && (
-                <div className="p-2.5 bg-orange-50 border border-orange-200 rounded text-[11px] space-y-1 text-orange-950">
-                  <p className="font-semibold flex items-center gap-1 text-orange-900">
-                    <AlertCircle className="w-3.5 h-3.5 text-orange-700" />
-                    Missing Donor Information:
-                  </p>
-                  <ul className="list-disc list-inside space-y-0.5 text-orange-900 pl-1">
-                    {reservingDonation.safety.missingInformation.map((m, idx) => (
-                      <li key={idx}>{m}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Prominent Caution Banner for Needs Review / Incomplete Information */}
-              {(reservingDonation.safety.assessmentOutcome === 'NEEDS_REVIEW' ||
-                reservingDonation.safety.assessmentOutcome === 'INCOMPLETE_INFORMATION') && (
-                <div className="p-3 bg-amber-100/70 border border-amber-300 rounded text-xs space-y-1 text-amber-950">
-                  <p className="font-bold flex items-center gap-1.5 text-amber-900">
-                    <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-                    Caution: On-Site Kitchen Inspection Required
-                  </p>
-                  <p className="text-[11px] text-amber-900 leading-relaxed">
-                    This donation is flagged as <strong>{reservingDonation.safety.assessmentOutcome.replace(/_/g, ' ')}</strong> due to missing temperature readings or handling advisories. Your receiving staff must conduct a visual, sensory, and temperature check upon delivery before serving to beneficiaries.
-                  </p>
-                </div>
-              )}
-
-              {/* Official assessment notice */}
-              <p className="text-[10px] text-[#737373] italic">
-                * Note: Structured assessment outcomes are decision-support classifications, not certified guarantees of food safety. Receiving inspection remains strictly required.
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded text-xs text-amber-900 space-y-1">
+              <p className="font-semibold flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-amber-700" />
+                Intake Confirmation Responsibility
               </p>
-
-              <div className="pt-1 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => onViewSafetyAudit(reservingDonation)}
-                  className="text-[11px] text-[#183D2B] hover:text-[#C77A54] underline font-medium flex items-center gap-1"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#183D2B]" />
-                  <span>Open Full Food Safety Inspector & Audit Trail</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="p-3 bg-[#E8EDE2] rounded border border-[#D3DECD] text-xs text-[#183D2B] space-y-1">
-              <p className="font-semibold flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4 text-[#183D2B]" />
-                Redistribution Commitment
-              </p>
-              <p className="text-[#50544C] leading-relaxed">
-                By confirming, this batch is atomically locked for {ngoName}. A volunteer courier will be routed to pick up
-                and deliver to your facility.
+              <p className="text-[11px] text-amber-800">
+                By completing reservation, your organization commits to receiving and verifying this food batch. FoodBridge will notify volunteer couriers for immediate pickup.
               </p>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setReservingDonation(null)}
-                className="px-4 py-2 text-xs font-medium text-[#50544C] hover:text-[#252923]"
+                className="px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923]"
               >
-                Back
+                Release Hold
               </button>
               <button
                 type="button"
                 disabled={confirmLocking}
-                onClick={handleConfirmReservation}
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs"
+                onClick={handleConfirmReservationSubmit}
+                className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs disabled:opacity-50 cursor-pointer"
               >
-                {confirmLocking ? 'Locking Reservation...' : 'Confirm & Dispatch Courier'}
+                {confirmLocking ? 'Locking...' : 'Confirm Reservation'}
               </button>
             </div>
           </div>
         </div>
       )}
-      {/* NGO CONFIRM RECEIPT MODAL */}
+
+      {/* NGO CONFIRM FOOD RECEIVED MODAL */}
       {confirmReceiptDonation && (
         <div
           role="dialog"
@@ -902,91 +1105,92 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           aria-labelledby="confirm-receipt-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
-          <form
-            onSubmit={handleConfirmReceiptSubmit}
-            className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
-          >
-            <div className="flex items-center gap-2 text-emerald-900 border-b border-[#E2DFD2] pb-3">
-              <Check className="w-5 h-5 text-emerald-700" />
-              <h3 id="confirm-receipt-title" className="font-editorial text-xl font-bold">
-                Confirm Food Received at Shelter
-              </h3>
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+            <div className="flex items-start justify-between border-b border-[#E2DFD2] pb-3">
+              <div className="flex items-center gap-2 text-emerald-800">
+                <Check className="w-5 h-5" />
+                <h3 id="confirm-receipt-title" className="font-editorial text-xl font-bold">
+                  Confirm Food Receipt & Distribution
+                </h3>
+              </div>
+              <button
+                onClick={() => setConfirmReceiptDonation(null)}
+                aria-label="Close dialog"
+                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+
             <p className="text-xs text-[#50544C]">
-              Verify incoming condition and measure actual delivered weight. This generates the official impact receipt.
+              Verify incoming batch for <strong className="text-[#252923]">"{confirmReceiptDonation.foodName}"</strong> delivered by{' '}
+              <strong className="text-[#252923]">{confirmReceiptDonation.assignedVolunteerName || 'Volunteer Courier'}</strong>.
             </p>
 
-            <div className="space-y-3 bg-white p-4 rounded border border-[#E2DFD2] text-xs">
+            <form onSubmit={handleSubmitConfirmReceipt} className="space-y-4 text-xs">
               <div>
-                <p className="font-semibold text-sm text-[#183D2B]">{confirmReceiptDonation.foodName}</p>
-                <p className="text-[#50544C]">Donor: {confirmReceiptDonation.donorName}</p>
-                <p className="text-[#50544C]">Courier: {confirmReceiptDonation.assignedVolunteerName || 'Volunteer'}</p>
+                <label className="block font-semibold text-[#252923] mb-1">
+                  Verified Intake Weight (kg) *
+                </label>
+                <input
+                  type="number"
+                  required
+                  step="0.1"
+                  value={receivedKgInput}
+                  onChange={(e) => setReceivedKgInput(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded font-mono font-bold text-sm"
+                />
+                <p className="text-[11px] text-[#647C50] mt-1">
+                  Expected weight: {confirmReceiptDonation.quantity.pickupConfirmedKg || confirmReceiptDonation.quantity.donorEstimatedKg} kg
+                </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#252923] mb-1">
-                  Receiving Supervisor Name *
+                <label className="block font-semibold text-[#252923] mb-1">
+                  Receiving Supervisor / Kitchen Manager Name *
                 </label>
                 <input
                   type="text"
                   required
                   value={receivingSupervisorInput}
                   onChange={(e) => setReceivingSupervisorInput(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#252923] mb-1">
-                  Actual Delivered Net Weight (kg) *
+                <label className="block font-semibold text-[#252923] mb-1">
+                  Intake Inspection Notes
                 </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  required
-                  min="0.1"
-                  value={receivedKgInput}
-                  onChange={(e) => setReceivedKgInput(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono font-bold text-[#183D2B]"
-                />
-                <p className="text-[10px] text-[#647C50] mt-1">
-                  Estimated Portions: ~{Math.round((Number(receivedKgInput) || 0) / 0.35)} community meals
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#252923] mb-1">
-                  Condition & Acceptance Notes
-                </label>
-                <input
-                  type="text"
+                <textarea
+                  rows={2}
                   value={receiptNotesInput}
                   onChange={(e) => setReceiptNotesInput(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
                 />
               </div>
-            </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
-              <button
-                type="button"
-                onClick={() => setConfirmReceiptDonation(null)}
-                className="px-4 py-2 text-xs text-[#50544C]"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 text-xs font-semibold text-white bg-emerald-800 rounded hover:bg-emerald-900 shadow-xs"
-              >
-                Sign Off & Conclude Delivery
-              </button>
-            </div>
-          </form>
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
+                <button
+                  type="button"
+                  onClick={() => setConfirmReceiptDonation(null)}
+                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded shadow-xs cursor-pointer"
+                >
+                  Confirm & Generate Impact Receipt
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* DISCREPANCY / DAMAGE REPORT MODAL */}
+      {/* DISCREPANCY REPORTING MODAL */}
       {discrepancyDonation && (
         <div
           role="dialog"
@@ -994,83 +1198,86 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           aria-labelledby="discrepancy-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
-          <form
-            onSubmit={handleDiscrepancySubmit}
-            className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
-          >
-            <div className="flex items-center gap-2 text-red-900 border-b border-[#E2DFD2] pb-3">
-              <AlertTriangle className="w-5 h-5 text-red-700" />
-              <h3 id="discrepancy-title" className="font-editorial text-lg font-bold">
-                Report Delivery Issue / Discrepancy
-              </h3>
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+            <div className="flex items-start justify-between border-b border-[#E2DFD2] pb-3">
+              <div className="flex items-center gap-2 text-amber-800">
+                <AlertTriangle className="w-5 h-5 text-[#C77A54]" />
+                <h3 id="discrepancy-title" className="font-editorial text-xl font-bold">
+                  Report Handover Discrepancy
+                </h3>
+              </div>
+              <button
+                onClick={() => setDiscrepancyDonation(null)}
+                aria-label="Close dialog"
+                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <p className="text-xs text-[#50544C]">
-              Flag issues found upon arrival or handover for: <strong>{discrepancyDonation.foodName}</strong>.
-            </p>
 
-            <div className="space-y-3 bg-white p-4 rounded border border-[#E2DFD2] text-xs">
+            <form onSubmit={handleSubmitDiscrepancy} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-semibold text-[#252923] mb-1">
-                  Issue Type *
+                <label className="block font-semibold text-[#252923] mb-1">
+                  Discrepancy Classification *
                 </label>
                 <select
                   value={issueTypeInput}
                   onChange={(e) => setIssueTypeInput(e.target.value as any)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
                 >
-                  <option value="damaged_food">Food spilled, spoiled or damaged during transit</option>
-                  <option value="quantity_mismatch">Major quantity mismatch / deficit</option>
-                  <option value="safety_temp_breach">Thermal safety breach (temperature below/above threshold)</option>
-                  <option value="packaging_breach">Unhygienic / damaged packaging seals</option>
-                  <option value="facility_closed">Delivery rejected / facility issue</option>
+                  <option value="quantity_mismatch">Quantity Mismatch (Actual weight differs from ledger)</option>
+                  <option value="damaged_food">Damaged Packaging / Contamination</option>
+                  <option value="safety_temp_breach">Thermal Breach (Food temperature unsafe on arrival)</option>
+                  <option value="packaging_breach">Unsealed or damaged container seals</option>
+                  <option value="facility_closed">Delivery timing discrepancy</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#252923] mb-1">
-                  Detailed Notes *
-                </label>
-                <textarea
-                  required
-                  rows={2}
-                  placeholder="Describe the issue, temperature reading, or damage observed."
-                  value={issueDetailsInput}
-                  onChange={(e) => setIssueDetailsInput(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#252923] mb-1">
-                  Actual Usable Weight If Any (kg)
+                <label className="block font-semibold text-[#252923] mb-1">
+                  Measured Weight (kg, if applicable)
                 </label>
                 <input
                   type="number"
                   step="0.1"
-                  placeholder="0 if completely rejected"
                   value={issueWeightInput}
                   onChange={(e) => setIssueWeightInput(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
+                  placeholder="e.g. 18.5"
+                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded font-mono"
                 />
               </div>
-            </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
-              <button
-                type="button"
-                onClick={() => setDiscrepancyDonation(null)}
-                className="px-4 py-2 text-xs text-[#50544C]"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 text-xs font-semibold text-white bg-red-800 rounded hover:bg-red-900"
-              >
-                Log Discrepancy
-              </button>
-            </div>
-          </form>
+              <div>
+                <label className="block font-semibold text-[#252923] mb-1">
+                  Incident Details & Corrective Action Taken *
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={issueDetailsInput}
+                  onChange={(e) => setIssueDetailsInput(e.target.value)}
+                  placeholder="Describe the discrepancy clearly for the quality assurance ledger..."
+                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
+                <button
+                  type="button"
+                  onClick={() => setDiscrepancyDonation(null)}
+                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 font-semibold text-white bg-amber-800 hover:bg-amber-900 rounded shadow-xs cursor-pointer"
+                >
+                  Log Discrepancy in Audit Ledger
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -1087,12 +1294,12 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#183D2B]" />
                 <h3 id="receipt-dialog-title" className="font-editorial text-xl font-bold text-[#183D2B]">
-                  Verified Delivery & Impact Receipt
+                  Verified Impact Certificate
                 </h3>
               </div>
               <button
                 onClick={() => setReceiptDonation(null)}
-                aria-label="Close impact receipt"
+                aria-label="Close certificate"
                 className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
               >
                 <X className="w-5 h-5" />
@@ -1107,17 +1314,18 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
 
               <div>
                 <p className="font-semibold text-sm text-[#183D2B]">{receiptDonation.foodName}</p>
-                <p className="text-[#50544C]">Donor Facility: {receiptDonation.impactReceipt.donorName}</p>
-                <p className="text-[#50544C]">Courier Sign-Off: {receiptDonation.impactReceipt.volunteerName}</p>
+                <p className="text-[#50544C]">Donor Source: {receiptDonation.impactReceipt.donorName}</p>
+                <p className="text-[#50544C]">Recipient Kitchen: {receiptDonation.impactReceipt.ngoName}</p>
+                <p className="text-[#50544C]">Volunteer Transport: {receiptDonation.impactReceipt.volunteerName}</p>
               </div>
 
               <div className="grid grid-cols-3 gap-2 p-3 bg-[#E8EDE2] rounded text-center">
                 <div>
-                  <p className="text-[10px] text-[#647C50]">Received Weight</p>
+                  <p className="text-[10px] text-[#647C50]">Received</p>
                   <p className="font-bold font-mono text-sm text-[#183D2B]">{receiptDonation.impactReceipt.deliveredKg} kg</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-[#647C50]">Portions Provided</p>
+                  <p className="text-[10px] text-[#647C50]">Portions Served</p>
                   <p className="font-bold font-mono text-sm text-[#183D2B]">~{receiptDonation.impactReceipt.mealsProvided}</p>
                 </div>
                 <div>
@@ -1127,7 +1335,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               </div>
 
               <p className="text-[10px] text-[#50544C] border-t border-[#E2DFD2] pt-2">
-                Safety compliance: {receiptDonation.impactReceipt.fssaiRuleCitation}
+                FSSAI redistribution citation: {receiptDonation.impactReceipt.fssaiRuleCitation}
               </p>
             </div>
 
@@ -1136,7 +1344,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                 onClick={() => setReceiptDonation(null)}
                 className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
               >
-                Close Receipt
+                Close Certificate
               </button>
             </div>
           </div>

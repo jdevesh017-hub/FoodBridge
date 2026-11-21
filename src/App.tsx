@@ -169,13 +169,19 @@ export default function App() {
         )}
 
         {/* NGO PORTAL VIEWS */}
-        {['ngo_discovery', 'ngo_discover', 'ngo_reservations', 'ngo_deliveries'].includes(currentView) && (
+        {['ngo_discovery', 'ngo_discover', 'ngo_reservations', 'ngo_deliveries', 'ngo_history'].includes(currentView) && (
           <NgoDashboard
             user={session.profile}
             initialTab={
-              currentView === 'ngo_reservations' || currentView === 'ngo_deliveries'
-                ? 'my_claims'
-                : 'discover'
+              currentView === 'ngo_discover'
+                ? 'discover'
+                : currentView === 'ngo_reservations'
+                ? 'reservations'
+                : currentView === 'ngo_deliveries'
+                ? 'deliveries'
+                : currentView === 'ngo_history'
+                ? 'history'
+                : 'overview'
             }
             onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
             onShowToast={showToast}
@@ -188,11 +194,13 @@ export default function App() {
           <VolunteerDashboard
             user={session.profile}
             initialTab={
-              currentView === 'volunteer_active'
-                ? 'active_run'
+              currentView === 'volunteer_available'
+                ? 'available'
+                : currentView === 'volunteer_active'
+                ? 'active'
                 : currentView === 'volunteer_history'
                 ? 'history'
-                : 'available'
+                : 'overview'
             }
             onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
             onShowToast={showToast}

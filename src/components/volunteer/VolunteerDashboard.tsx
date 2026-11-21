@@ -3,14 +3,31 @@ import { volunteerService } from '../../services/volunteerService';
 import { FoodDonation, UserProfile } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
 import { LeafletMap } from '../map/LeafletMap';
-import { Truck, MapPin, CheckCircle2, AlertTriangle, Clock, ArrowRight, ShieldCheck, X, Navigation, RotateCcw, AlertCircle, FileText, BarChart3 } from 'lucide-react';
+import {
+  Truck,
+  MapPin,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  ArrowRight,
+  ShieldCheck,
+  X,
+  Navigation,
+  RotateCcw,
+  AlertCircle,
+  FileText,
+  BarChart3,
+  Award,
+  Calendar,
+  Layers
+} from 'lucide-react';
 
 interface VolunteerDashboardProps {
   user: UserProfile | null;
   onViewSafetyAudit: (donation: FoodDonation) => void;
   onShowToast: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   onNavigate: (view: string) => void;
-  initialTab?: 'available' | 'active_run' | 'history';
+  initialTab?: 'overview' | 'available' | 'active' | 'history';
 }
 
 export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
@@ -18,9 +35,9 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   onViewSafetyAudit,
   onShowToast,
   onNavigate,
-  initialTab = 'available',
+  initialTab = 'overview',
 }) => {
-  const [activeTab, setActiveTab] = useState<'available' | 'active_run' | 'history'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'overview' | 'available' | 'active' | 'history'>(initialTab);
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
 
   // Modal states for exception handling & pickup verification
@@ -32,6 +49,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   const [verifiedWeightInput, setVerifiedWeightInput] = useState<string>('');
   const [showArrivalAtNgoModal, setShowArrivalAtNgoModal] = useState<FoodDonation | null>(null);
   const [arrivalNotesInput, setArrivalNotesInput] = useState<string>('Handed over thermal boxes to shelter staff');
+  const [receiptDonation, setReceiptDonation] = useState<FoodDonation | null>(null);
 
   const volunteerId = user?.id || 'volunteer_alex';
   const volunteerName = user?.fullName || 'Alex Rivera';
@@ -45,6 +63,14 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
     }
   }, [initialTab]);
 
+  const handleTabSelect = (tab: 'overview' | 'available' | 'active' | 'history') => {
+    setActiveTab(tab);
+    if (tab === 'overview') onNavigate('volunteer_dashboard');
+    else if (tab === 'available') onNavigate('volunteer_available');
+    else if (tab === 'active') onNavigate('volunteer_active');
+    else if (tab === 'history') onNavigate('volunteer_history');
+  };
+
   // Handle keyboard Escape for all modals
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -53,11 +79,12 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
         else if (showArrivalAtNgoModal) setShowArrivalAtNgoModal(null);
         else if (showCancelModal) setShowCancelModal(null);
         else if (showFailedModal) setShowFailedModal(null);
+        else if (receiptDonation) setReceiptDonation(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showPickupModal, showArrivalAtNgoModal, showCancelModal, showFailedModal]);
+  }, [showPickupModal, showArrivalAtNgoModal, showCancelModal, showFailedModal, receiptDonation]);
 
   const availableTasks = volunteerService.getAvailableTasks(volunteerLat, volunteerLng);
   const myAssignments = volunteerService.getMyAssignments(volunteerId);
@@ -66,6 +93,14 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   // Active assignment being processed
   const activeRun = myAssignments[0] || null;
   const displayedDonation = activeRun || availableTasks.find((t) => t.id === selectedTaskId) || null;
+
+  // Volunteer metrics
+  const totalKgTransported = deliveryHistory.reduce((acc, d) => {
+    return acc + (d.quantity.deliveredKg || d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg);
+  }, 0);
+  const totalMealsDelivered = deliveryHistory.reduce((acc, d) => {
+    return acc + (d.impactReceipt?.mealsProvided || d.quantity.servingsEstimate || Math.round((d.quantity.deliveredKg || d.quantity.donorEstimatedKg) / 0.35));
+  }, 0);
 
   // Handler: Accept Task
   const handleAcceptTask = (task: FoodDonation) => {
@@ -77,7 +112,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
     });
     if (res.success) {
       onShowToast(`Task accepted! Proceed to ${task.donorName} for collection.`, 'success');
-      setActiveTab('active_run');
+      handleTabSelect('active');
     } else {
       onShowToast(res.error || 'Failed to claim task.', 'error');
     }
@@ -118,104 +153,304 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
     setShowArrivalAtNgoModal(null);
 
     if (res.success) {
-      onShowToast('Arrival at NGO marked! Food handed over to shelter; awaiting NGO verification.', 'info');
+      onShowToast('Arrival at NGO logged! Awaiting NGO staff intake sign-off.', 'success');
     } else {
-      onShowToast(res.error || 'Error marking arrival at NGO.', 'error');
+      onShowToast(res.error || 'Error logging arrival at NGO.', 'error');
     }
   };
 
-  // Exception Workflow: Cancel Assignment
-  const handleCancelSubmit = (e: React.FormEvent) => {
+  // Exception 1: Cancel Assignment
+  const handleConfirmCancelAssignment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!showCancelModal) return;
 
     const res = volunteerService.cancelAssignment(showCancelModal.id, volunteerName, cancelReason);
     setShowCancelModal(null);
+
     if (res.success) {
-      onShowToast('Assignment released. Reopened with urgent priority for other couriers.', 'info');
-      setActiveTab('available');
+      onShowToast('Assignment released back to dispatch queue.', 'info');
+      handleTabSelect('available');
     } else {
-      onShowToast(res.error || 'Error cancelling assignment.', 'error');
+      onShowToast(res.error || 'Failed to release assignment.', 'error');
     }
   };
 
-  // Exception Workflow: Report Failed Pickup
-  const handleFailedPickupSubmit = (e: React.FormEvent) => {
+  // Exception 2: Report Failed Pickup
+  const handleConfirmFailedPickup = (e: React.FormEvent) => {
     e.preventDefault();
     if (!showFailedModal) return;
 
     const res = volunteerService.reportFailedPickup(showFailedModal.id, volunteerName, failedReason);
     setShowFailedModal(null);
+
     if (res.success) {
-      onShowToast('Pickup incident logged. Recipient NGO and donor team alerted.', 'warning');
-      setActiveTab('available');
+      onShowToast('Failed pickup logged in audit ledger. Notifying donor & NGO.', 'warning');
+      handleTabSelect('available');
     } else {
-      onShowToast(res.error || 'Error logging incident.', 'error');
+      onShowToast(res.error || 'Error logging failed pickup.', 'error');
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E2DFD2] pb-5">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      {/* Editorial Header with Status & Portal Tabs */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E2DFD2] pb-6">
         <div>
           <span className="text-xs font-semibold tracking-wider uppercase text-[#647C50]">
-            Volunteer Courier Dispatch · Community Fleet
+            Volunteer Courier & Logistics Fleet
           </span>
           <h1 className="font-editorial text-3xl sm:text-4xl font-bold text-[#183D2B] mt-1">
-            Welcome back, {volunteerName}.
+            Courier {volunteerName}
           </h1>
           <p className="text-sm text-[#50544C] mt-1">
-            Dispatch base: 22 Elm Street · Service radius: <span className="font-medium text-[#252923]">10 km</span> · Available for runs
-            {user?.verified === false && (
-              <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
-                <AlertTriangle className="w-3 h-3 text-amber-700" />
-                Courier Onboarding Pending
-              </span>
-            )}
+            Dispatch zone: <span className="font-medium text-[#252923]">Bandra-Kurla / Western Suburbs</span> · Vehicle: Electric Scooter with Thermal Box
           </p>
         </div>
 
-        {/* View Switcher Tabs & Intelligence Shortcut */}
+        {/* View Switcher Tabs */}
         <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-          <button
-            onClick={() => onNavigate('intelligence')}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#183D2B] bg-white border border-[#E2DFD2] hover:border-[#647C50] rounded transition-colors shadow-2xs cursor-pointer"
-          >
-            <BarChart3 className="w-3.5 h-3.5 text-[#C77A54]" />
-            <span>Delivery Performance</span>
-          </button>
-
           <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded">
             <button
-              onClick={() => setActiveTab('available')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
+              onClick={() => handleTabSelect('overview')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+                activeTab === 'overview' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => handleTabSelect('available')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
                 activeTab === 'available' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
               Available Tasks ({availableTasks.length})
             </button>
             <button
-              onClick={() => setActiveTab('active_run')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
-                activeTab === 'active_run' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+              onClick={() => handleTabSelect('active')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+                activeTab === 'active' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
-              Active Run {myAssignments.length > 0 && <span className="ml-1 px-1.5 py-0.2 bg-[#C77A54] text-white rounded-full text-[10px]">1</span>}
+              My Deliveries {activeRun ? '(1 Active)' : '(0)'}
             </button>
             <button
-              onClick={() => setActiveTab('history')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded transition-colors ${
+              onClick={() => handleTabSelect('history')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
                 activeTab === 'history' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
-              My Rescues ({deliveryHistory.length})
+              Delivery History ({deliveryHistory.length})
             </button>
           </div>
         </div>
       </div>
 
-      {/* TAB 1: AVAILABLE DISPATCH TASKS */}
+      {/* ============================================================
+          PAGE 1: OVERVIEW TAB
+          ============================================================ */}
+      {activeTab === 'overview' && (
+        <div className="space-y-8">
+          {/* Volunteer KPI Strip */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+              <p className="text-xs text-[#647C50]">Active Delivery Mission</p>
+              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
+                {activeRun ? '1 Active' : '0 Idle'}
+              </p>
+              <p className="text-[11px] text-[#50544C] mt-1">{activeRun ? 'Live run in progress' : 'Ready for assignment'}</p>
+            </div>
+
+            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+              <p className="text-xs text-[#647C50]">Available Runs Nearby</p>
+              <p className="font-editorial text-3xl font-bold text-[#C77A54] tabular-nums mt-1">{availableTasks.length}</p>
+              <p className="text-[11px] text-[#50544C] mt-1">Within 15 km radius</p>
+            </div>
+
+            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+              <p className="text-xs text-[#647C50]">Total Food Transported</p>
+              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
+                {Math.round(totalKgTransported)} <span className="text-sm font-sans font-normal text-[#50544C]">kg</span>
+              </p>
+              <p className="text-[11px] text-[#50544C] mt-1">Safely carried in thermal containers</p>
+            </div>
+
+            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+              <p className="text-xs text-[#647C50]">Total Completed Runs</p>
+              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">{deliveryHistory.length}</p>
+              <p className="text-[11px] text-[#50544C] mt-1">~{totalMealsDelivered} community meals</p>
+            </div>
+          </div>
+
+          {/* 2-Column Overview Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left: Active Mission Card or Ready for Dispatch (7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              {activeRun ? (
+                <div className="bg-white p-6 rounded-lg border-2 border-[#183D2B] shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#C77A54]">
+                      ⚡ Active Live Mission in Progress
+                    </span>
+                    <StatusBadge status={activeRun.status} />
+                  </div>
+
+                  <div>
+                    <h2 className="font-editorial text-2xl font-bold text-[#183D2B]">
+                      {activeRun.foodName}
+                    </h2>
+                    <p className="text-xs text-[#50544C] mt-1">
+                      From: <strong className="text-[#252923]">{activeRun.donorName}</strong> ({activeRun.donorAddress})
+                    </p>
+                    <p className="text-xs text-[#50544C] mt-0.5">
+                      To: <strong className="text-[#252923]">{activeRun.reservedByNgoName}</strong> ({activeRun.ngoAddress || 'Community kitchen'})
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-[#F7F6F0] rounded border border-[#E2DFD2] flex justify-between items-center text-xs">
+                    <div>
+                      <span className="text-[#647C50]">Quantity to transport:</span>
+                      <p className="font-bold text-sm text-[#183D2B] font-mono">
+                        {activeRun.quantity.pickupConfirmedKg || activeRun.quantity.measuredKg || activeRun.quantity.donorEstimatedKg} kg
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleTabSelect('active')}
+                      className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Continue Mission Progression</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white p-8 rounded-lg border border-[#E2DFD2] shadow-xs text-center space-y-3">
+                  <CheckCircle2 className="w-10 h-10 text-[#647C50] mx-auto opacity-75" />
+                  <h3 className="font-editorial text-xl font-bold text-[#183D2B]">
+                    Courier Ready for Dispatch
+                  </h3>
+                  <p className="text-xs text-[#50544C] max-w-md mx-auto">
+                    You currently have no delivery runs claimed. There are{' '}
+                    <strong className="text-[#183D2B]">{availableTasks.length}</strong> surplus runs waiting for pickup in your area.
+                  </p>
+                  <button
+                    onClick={() => handleTabSelect('available')}
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs cursor-pointer"
+                  >
+                    <span>Browse Available Runs ({availableTasks.length})</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {/* Nearby Runs Quick View */}
+              <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+                  <div className="flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-[#647C50]" />
+                    <h3 className="font-editorial text-lg font-bold text-[#183D2B]">
+                      Fastest Available Pickups Nearby
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => handleTabSelect('available')}
+                    className="text-xs font-semibold text-[#183D2B] hover:underline"
+                  >
+                    View All Runs →
+                  </button>
+                </div>
+
+                {availableTasks.length === 0 ? (
+                  <p className="text-xs text-[#737373] py-4 text-center">All nearby tasks are currently claimed.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {availableTasks.slice(0, 3).map((task) => (
+                      <div
+                        key={task.id}
+                        className="p-3.5 rounded border border-[#E2DFD2] bg-[#FBF9F5] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                      >
+                        <div>
+                          <p className="font-semibold text-sm text-[#183D2B]">{task.foodName}</p>
+                          <p className="text-[11px] text-[#50544C]">
+                            {task.distanceKm} km away · {task.donorName} → {task.reservedByNgoName || 'Shelter'}
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => handleAcceptTask(task)}
+                          className="px-3 py-1.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded self-start sm:self-auto cursor-pointer"
+                        >
+                          Accept Run
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Courier Profile & Recent Achievements (5 cols) */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs space-y-3">
+                <div className="flex items-center gap-2 border-b border-[#E2DFD2] pb-3">
+                  <Truck className="w-4 h-4 text-[#183D2B]" />
+                  <h3 className="font-editorial text-lg font-bold text-[#183D2B]">Courier Fleet Profile</h3>
+                </div>
+
+                <div className="text-xs space-y-2">
+                  <div className="p-3 bg-[#F7F6F0] rounded border border-[#E2DFD2] space-y-1">
+                    <p className="text-[#647C50]">Driver / Partner</p>
+                    <p className="font-bold text-[#183D2B] text-sm">{volunteerName}</p>
+                    <p className="text-[#50544C]">Contact: {volunteerPhone}</p>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-[#E8EDE2] rounded text-[#183D2B]">
+                    <span className="font-semibold">Transport Equipment</span>
+                    <span className="font-bold">Thermal Box (Insulated)</span>
+                  </div>
+                  <p className="text-[11px] text-[#50544C]">
+                    Compliant with FSSAI transit hygiene standards for hot-holding (≥65°C) and chilled perishables (≤5°C).
+                  </p>
+                </div>
+              </div>
+
+              {/* Recent Deliveries */}
+              <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+                  <h3 className="font-editorial text-lg font-bold text-[#183D2B]">Recent Rescues</h3>
+                  <button
+                    onClick={() => handleTabSelect('history')}
+                    className="text-xs font-semibold text-[#183D2B] hover:underline"
+                  >
+                    View History ({deliveryHistory.length})
+                  </button>
+                </div>
+
+                {deliveryHistory.length === 0 ? (
+                  <p className="text-xs text-[#737373] py-4 text-center">No completed runs recorded yet.</p>
+                ) : (
+                  <div className="space-y-2.5 text-xs">
+                    {deliveryHistory.slice(0, 3).map((item) => (
+                      <div key={item.id} className="p-2.5 bg-[#FBF9F5] rounded border border-[#E2DFD2] flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold text-[#183D2B]">{item.foodName}</p>
+                          <p className="text-[10px] text-[#50544C]">Delivered to {item.reservedByNgoName || 'Shelter'}</p>
+                        </div>
+                        <span className="font-bold font-mono text-emerald-800">
+                          {item.quantity.deliveredKg || item.quantity.donorEstimatedKg} kg
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================
+          PAGE 2: AVAILABLE TASKS TAB (DISPATCH POOL + MAP)
+          ============================================================ */}
       {activeTab === 'available' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left: Task List */}
@@ -304,7 +539,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                             e.stopPropagation();
                             handleAcceptTask(task);
                           }}
-                          className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs"
+                          className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer"
                         >
                           Accept Assignment
                         </button>
@@ -333,8 +568,10 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
         </div>
       )}
 
-      {/* TAB 2: ACTIVE DELIVERY RUN PROGRESSION */}
-      {activeTab === 'active_run' && (
+      {/* ============================================================
+          PAGE 3: MY DELIVERIES / ACTIVE RUN PROGRESSION TAB
+          ============================================================ */}
+      {activeTab === 'active' && (
         <div className="space-y-6">
           {!activeRun ? (
             <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-3">
@@ -342,7 +579,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
               <p className="font-editorial text-lg text-[#50544C]">No active delivery in progress.</p>
               <p className="text-xs text-[#737373]">Claim an available run from the dispatch board to start.</p>
               <button
-                onClick={() => setActiveTab('available')}
+                onClick={() => handleTabSelect('available')}
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
               >
                 <span>Browse Available Runs</span>
@@ -452,7 +689,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                   {activeRun.status === 'assigned' && (
                     <button
                       onClick={() => handleConfirmArrival(activeRun.id)}
-                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2"
+                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Confirm Arrival at Donor Kitchen</span>
@@ -467,7 +704,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                           String(activeRun.quantity.measuredKg || activeRun.quantity.donorEstimatedKg)
                         );
                       }}
-                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2"
+                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <ShieldCheck className="w-4 h-4" />
                       <span>Verify Thermal Condition & Confirm Pickup</span>
@@ -479,7 +716,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                       onClick={() => {
                         setShowArrivalAtNgoModal(activeRun);
                       }}
-                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2"
+                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Truck className="w-4 h-4" />
                       <span>Confirm Arrival at NGO Shelter</span>
@@ -503,7 +740,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                     {['assigned', 'arrived_at_donor'].includes(activeRun.status) ? (
                       <button
                         onClick={() => setShowCancelModal(activeRun)}
-                        className="text-[#50544C] hover:text-[#C77A54] underline"
+                        className="text-[#50544C] hover:text-[#C77A54] underline cursor-pointer"
                       >
                         Cancel Run (Release for Reassignment)
                       </button>
@@ -513,7 +750,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
                     <button
                       onClick={() => setShowFailedModal(activeRun)}
-                      className="text-[#C77A54] hover:underline"
+                      className="text-[#C77A54] hover:underline cursor-pointer"
                     >
                       Report Incident / Failed Pickup
                     </button>
@@ -534,15 +771,19 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
         </div>
       )}
 
-      {/* TAB 3: RESCUE HISTORY */}
+      {/* ============================================================
+          PAGE 4: DELIVERY HISTORY TAB
+          ============================================================ */}
       {activeTab === 'history' && (
         <div className="bg-white rounded-lg border border-[#E2DFD2] p-6 space-y-4 shadow-xs">
-          <h2 className="font-editorial text-xl font-bold text-[#183D2B]">
-            Completed Courier Mission History
-          </h2>
-          <p className="text-xs text-[#50544C]">
-            Verified deliveries completed by {volunteerName}.
-          </p>
+          <div>
+            <h2 className="font-editorial text-xl font-bold text-[#183D2B]">
+              Completed Courier Mission History
+            </h2>
+            <p className="text-xs text-[#50544C]">
+              Verified deliveries successfully transported and handed over by {volunteerName}.
+            </p>
+          </div>
 
           {deliveryHistory.length === 0 ? (
             <p className="text-sm text-[#737373] py-8 text-center">No completed rescues logged in this session yet.</p>
@@ -555,6 +796,9 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                     <p className="text-[#50544C]">
                       From {d.donorName} → {d.reservedByNgoName}
                     </p>
+                    <p className="text-[10px] text-[#737373]">
+                      Delivered on: {new Date(d.updatedAt || d.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
                   <div className="flex items-center gap-4 font-mono tabular-nums">
                     <span className="font-bold text-[#183D2B]">
@@ -563,6 +807,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                     <span className="text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded text-[11px] font-sans font-semibold">
                       VERIFIED HANDOVER
                     </span>
+                    {d.impactReceipt && (
+                      <button
+                        onClick={() => setReceiptDonation(d)}
+                        className="text-xs text-emerald-800 hover:text-emerald-950 font-bold underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>Receipt</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -570,6 +823,10 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           )}
         </div>
       )}
+
+      {/* ============================================================
+          VOLUNTEER MODALS
+          ============================================================ */}
 
       {/* MODAL: ARRIVAL AT NGO & HANDOVER NOTES */}
       {showArrivalAtNgoModal && (
@@ -579,59 +836,59 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           aria-labelledby="arrival-ngo-modal-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
-          <form
-            onSubmit={handleConfirmArrivalAtNgoSubmit}
-            className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
-          >
-            <div className="flex items-center gap-2 text-[#183D2B] border-b border-[#E2DFD2] pb-3">
-              <Truck className="w-5 h-5 text-[#647C50]" />
-              <h3 id="arrival-ngo-modal-title" className="font-editorial text-xl font-bold">
-                Confirm Arrival at NGO Facility
+          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+              <h3 id="arrival-ngo-modal-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+                Handover at NGO Facility
               </h3>
+              <button
+                onClick={() => setShowArrivalAtNgoModal(null)}
+                aria-label="Close dialog"
+                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+
             <p className="text-xs text-[#50544C]">
-              Confirm arrival at <strong>{showArrivalAtNgoModal.reservedByNgoName}</strong> ({showArrivalAtNgoModal.ngoAddress}) and note handover details.
+              Confirm arrival at <strong className="text-[#252923]">{showArrivalAtNgoModal.reservedByNgoName}</strong>. Hand over the thermal carriers to receiving shelter staff.
             </p>
 
-            <div className="space-y-3 bg-white p-4 rounded border border-[#E2DFD2] text-xs">
-              <p className="font-semibold text-sm text-[#183D2B]">{showArrivalAtNgoModal.foodName}</p>
-              <p className="text-[#50544C]">Transported: {showArrivalAtNgoModal.quantity.pickupConfirmedKg || showArrivalAtNgoModal.quantity.donorEstimatedKg} kg</p>
-
+            <form onSubmit={handleConfirmArrivalAtNgoSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-[#252923] mb-1">
-                  Courier Handover Notes
+                  Handover Notes / Receiving Staff Name
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Delivered 4 insulated thermal cambros to kitchen receiving door"
                   value={arrivalNotesInput}
                   onChange={(e) => setArrivalNotesInput(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#E2DFD2] rounded"
                 />
               </div>
-            </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
-              <button
-                type="button"
-                onClick={() => setShowArrivalAtNgoModal(null)}
-                className="px-4 py-2 text-xs text-[#50544C]"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
-              >
-                Mark Handover Complete
-              </button>
-            </div>
-          </form>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowArrivalAtNgoModal(null)}
+                  className="px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded cursor-pointer"
+                >
+                  Confirm Delivery Handover
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* MODAL: PHYSICAL PICKUP & WEIGHT CONFIRMATION */}
+      {/* MODAL: VERIFY THERMAL CONDITION & PICKUP WEIGHT */}
       {showPickupModal && (
         <div
           role="dialog"
@@ -639,24 +896,28 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           aria-labelledby="pickup-modal-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
-          <form
-            onSubmit={handleConfirmPickupSubmit}
-            className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
-          >
-            <h3 id="pickup-modal-title" className="font-editorial text-xl font-bold text-[#183D2B]">
-              Audit & Confirm Food Pickup
-            </h3>
+          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+              <h3 id="pickup-modal-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+                Verify Pickup Quantity & Seals
+              </h3>
+              <button
+                onClick={() => setShowPickupModal(null)}
+                aria-label="Close dialog"
+                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
             <p className="text-xs text-[#50544C]">
-              Verify temperature and packaging integrity before loading into vehicle.
+              Verify physical pickup for <strong className="text-[#252923]">"{showPickupModal.foodName}"</strong> at {showPickupModal.donorName}. Ensure containers are sealed.
             </p>
 
-            <div className="space-y-3 bg-white p-4 rounded border border-[#E2DFD2] text-xs">
-              <p className="font-semibold text-[#183D2B]">{showPickupModal.foodName}</p>
-              <p className="text-[#50544C]">Required: {showPickupModal.safety.fssaiRuleCitation}</p>
-
+            <form onSubmit={handleConfirmPickupSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-semibold text-[#252923] mb-1">
-                  Physically Confirmed Weight (kg)
+                <label className="block font-semibold text-[#252923] mb-1">
+                  Measured Scale Weight (kg)
                 </label>
                 <input
                   type="number"
@@ -664,34 +925,44 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                   required
                   value={verifiedWeightInput}
                   onChange={(e) => setVerifiedWeightInput(e.target.value)}
-                  className="w-full px-3 py-1.5 text-sm bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
+                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded font-mono font-bold"
                 />
-                <p className="text-[10px] text-[#647C50] mt-1">
-                  Audited against donor estimate: {showPickupModal.quantity.donorEstimatedKg} kg
+                <p className="text-[11px] text-[#647C50] mt-1">
+                  Donor Estimated: {showPickupModal.quantity.donorEstimatedKg} kg
                 </p>
               </div>
-            </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowPickupModal(null)}
-                className="px-4 py-2 text-xs text-[#50544C]"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
-              >
-                Confirm Collection & Start Transit
-              </button>
-            </div>
-          </form>
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-emerald-900 space-y-1">
+                <p className="font-semibold flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" />
+                  Thermal Carrier Check
+                </p>
+                <p className="text-[11px] text-emerald-800">
+                  Transferred into insulated thermal boxes ({showPickupModal.safety.storageCondition.replace(/_/g, ' ')}).
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPickupModal(null)}
+                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded cursor-pointer"
+                >
+                  Confirm Pickup & Start Transit
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* MODAL: EXCEPTION - VOLUNTEER CANCELLATION */}
+      {/* MODAL: CANCEL ASSIGNMENT */}
       {showCancelModal && (
         <div
           role="dialog"
@@ -699,54 +970,62 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           aria-labelledby="cancel-assignment-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
-          <form
-            onSubmit={handleCancelSubmit}
-            className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
-          >
-            <h3 id="cancel-assignment-title" className="font-editorial text-lg font-bold text-[#183D2B] flex items-center gap-1.5">
-              <RotateCcw className="w-5 h-5 text-[#C77A54]" />
-              Release Assignment
-            </h3>
+          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+              <h3 id="cancel-assignment-title" className="font-editorial text-xl font-bold text-red-800">
+                Release Mission Assignment
+              </h3>
+              <button
+                onClick={() => setShowCancelModal(null)}
+                aria-label="Close dialog"
+                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
             <p className="text-xs text-[#50544C]">
-              If you cannot complete this run, releasing it immediately will flag it with urgent priority on the volunteer board.
+              Release <strong className="text-[#252923]">"{showCancelModal.foodName}"</strong> back to the available courier pool for immediate reassignment.
             </p>
 
-            <div>
-              <label className="block text-xs font-semibold text-[#252923] mb-1">
-                Reason for Reassignment
-              </label>
-              <select
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-[#E2DFD2] rounded"
-              >
-                <option value="Vehicle mechanical issue">Vehicle mechanical / bicycle issue</option>
-                <option value="Personal / family emergency">Personal emergency</option>
-                <option value="Severe traffic gridlock">Severe traffic gridlock / route blocked</option>
-                <option value="Weather hindrance">Severe weather hindrance</option>
-              </select>
-            </div>
+            <form onSubmit={handleConfirmCancelAssignment} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-[#252923] mb-1">
+                  Reason for Cancellation *
+                </label>
+                <select
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
+                >
+                  <option value="Vehicle mechanical issue">Vehicle mechanical issue</option>
+                  <option value="Severe traffic / transit gridlock">Severe traffic / transit gridlock</option>
+                  <option value="Personal emergency">Personal emergency</option>
+                  <option value="Thermal carrier capacity exceeded">Thermal carrier capacity exceeded</option>
+                </select>
+              </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowCancelModal(null)}
-                className="px-4 py-2 text-xs text-[#50544C]"
-              >
-                Keep Run
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#C77A54] rounded hover:bg-[#a9603e]"
-              >
-                Release for Urgent Dispatch
-              </button>
-            </div>
-          </form>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCancelModal(null)}
+                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                >
+                  Keep Mission
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 font-semibold text-white bg-red-800 hover:bg-red-900 rounded cursor-pointer"
+                >
+                  Release to Other Couriers
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* MODAL: EXCEPTION - FAILED PICKUP REPORT */}
+      {/* MODAL: REPORT FAILED PICKUP */}
       {showFailedModal && (
         <div
           role="dialog"
@@ -754,50 +1033,125 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           aria-labelledby="failed-pickup-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
-          <form
-            onSubmit={handleFailedPickupSubmit}
-            className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
-          >
-            <h3 id="failed-pickup-title" className="font-editorial text-lg font-bold text-red-900 flex items-center gap-1.5">
-              <AlertTriangle className="w-5 h-5 text-red-700" />
-              Report Incident / Failed Pickup
-            </h3>
+          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+              <h3 id="failed-pickup-title" className="font-editorial text-xl font-bold text-amber-800">
+                Report Collection Incident
+              </h3>
+              <button
+                onClick={() => setShowFailedModal(null)}
+                aria-label="Close dialog"
+                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
             <p className="text-xs text-[#50544C]">
-              Log on-site issues preventing safe collection. This alerts the donor management and re-routes the recipient NGO.
+              Log an unresolved incident at <strong className="text-[#252923]">{showFailedModal.donorName}</strong> for{' '}
+              <strong className="text-[#252923]">"{showFailedModal.foodName}"</strong>.
             </p>
 
-            <div>
-              <label className="block text-xs font-semibold text-[#252923] mb-1">
-                Incident Reason *
-              </label>
-              <select
-                value={failedReason}
-                onChange={(e) => setFailedReason(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-[#E2DFD2] rounded"
+            <form onSubmit={handleConfirmFailedPickup} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-[#252923] mb-1">
+                  Incident Reason *
+                </label>
+                <select
+                  value={failedReason}
+                  onChange={(e) => setFailedReason(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
+                >
+                  <option value="Donor premises closed / unresponsive">Donor premises closed / unresponsive</option>
+                  <option value="Food already disposed or unavailable on site">Food already disposed or unavailable on site</option>
+                  <option value="Food failed thermal safety check (spoiled/compromised)">Food failed thermal safety check (spoiled/compromised)</option>
+                  <option value="Container damaged and unsealed">Container damaged and unsealed</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFailedModal(null)}
+                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 font-semibold text-white bg-amber-800 hover:bg-amber-900 rounded cursor-pointer"
+                >
+                  Log Incident
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* VERIFIED IMPACT RECEIPT MODAL */}
+      {receiptDonation && receiptDonation.impactReceipt && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="receipt-dialog-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#183D2B]" />
+                <h3 id="receipt-dialog-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+                  Verified Impact Certificate
+                </h3>
+              </div>
+              <button
+                onClick={() => setReceiptDonation(null)}
+                aria-label="Close certificate"
+                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
               >
-                <option value="Donor premises closed / unresponsive">Donor premises closed / staff unresponsive</option>
-                <option value="Food spoiled / temperature safety breached">Food temperature unsafe / spoilage detected</option>
-                <option value="Surplus food already collected or missing">Surplus batch already collected or missing</option>
-                <option value="Improper packaging / unhygienic containers">Improper non-food-grade containers</option>
-              </select>
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="bg-white p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
+              <div className="flex justify-between items-center text-[11px] text-[#647C50] font-mono">
+                <span>Receipt: {receiptDonation.impactReceipt.receiptId}</span>
+                <span>{new Date(receiptDonation.impactReceipt.deliveredAt).toLocaleDateString()}</span>
+              </div>
+
+              <div>
+                <p className="font-semibold text-sm text-[#183D2B]">{receiptDonation.foodName}</p>
+                <p className="text-[#50544C]">Donor: {receiptDonation.impactReceipt.donorName}</p>
+                <p className="text-[#50544C]">Recipient: {receiptDonation.impactReceipt.ngoName}</p>
+                <p className="text-[#50544C]">Courier: {receiptDonation.impactReceipt.volunteerName}</p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 p-3 bg-[#E8EDE2] rounded text-center">
+                <div>
+                  <p className="text-[10px] text-[#647C50]">Delivered</p>
+                  <p className="font-bold font-mono text-sm text-[#183D2B]">{receiptDonation.impactReceipt.deliveredKg} kg</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#647C50]">Meals Served</p>
+                  <p className="font-bold font-mono text-sm text-[#183D2B]">~{receiptDonation.impactReceipt.mealsProvided}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#647C50]">CO₂e Saved</p>
+                  <p className="font-bold font-mono text-sm text-[#183D2B]">{receiptDonation.impactReceipt.co2PreventedKg} kg</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
               <button
-                type="button"
-                onClick={() => setShowFailedModal(null)}
-                className="px-4 py-2 text-xs text-[#50544C]"
+                onClick={() => setReceiptDonation(null)}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-xs font-semibold text-white bg-red-800 rounded hover:bg-red-900"
-              >
-                Submit Incident Report
+                Close Certificate
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
     </div>
