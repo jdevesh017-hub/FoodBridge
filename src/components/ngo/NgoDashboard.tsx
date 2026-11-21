@@ -3,6 +3,7 @@ import { donationService } from '../../services/donationService';
 import { volunteerService, calculateDistanceKm } from '../../services/volunteerService';
 import { FoodCategory, FoodDonation, UserProfile } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
+import { useModalA11y } from '../../hooks/useModalA11y';
 
 const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
 
@@ -98,20 +99,16 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
     else if (tab === 'history') onNavigate('ngo_history');
   };
 
-  // Handle keyboard Escape for all modals
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (reservingDonation) setReservingDonation(null);
-        else if (confirmReceiptDonation) setConfirmReceiptDonation(null);
-        else if (discrepancyDonation) setDiscrepancyDonation(null);
-        else if (receiptDonation) setReceiptDonation(null);
-        else if (inspectDonation) setInspectDonation(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [reservingDonation, confirmReceiptDonation, discrepancyDonation, receiptDonation, inspectDonation]);
+  // Accessibility: Focus trap, focus restore, and Escape key handling for all modals
+  const isAnyModalOpen = Boolean(reservingDonation || confirmReceiptDonation || discrepancyDonation || receiptDonation || inspectDonation);
+  const handleCloseActiveModal = () => {
+    if (reservingDonation) setReservingDonation(null);
+    else if (confirmReceiptDonation) setConfirmReceiptDonation(null);
+    else if (discrepancyDonation) setDiscrepancyDonation(null);
+    else if (receiptDonation) setReceiptDonation(null);
+    else if (inspectDonation) setInspectDonation(null);
+  };
+  const modalContainerRef = useModalA11y(isAnyModalOpen, handleCloseActiveModal);
 
   const allDonations = donationService.getAllDonations();
 
@@ -1062,6 +1059,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
       {/* RESERVATION CONFIRMATION DIALOG (Atomic Locking Step) */}
       {reservingDonation && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-reservation-title"
@@ -1135,6 +1133,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
       {/* NGO CONFIRM FOOD RECEIVED MODAL */}
       {confirmReceiptDonation && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-receipt-title"
@@ -1228,6 +1227,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
       {/* DISCREPANCY REPORTING MODAL */}
       {discrepancyDonation && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="discrepancy-title"
@@ -1319,6 +1319,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
       {/* VERIFIED DELIVERY IMPACT RECEIPT MODAL */}
       {receiptDonation && receiptDonation.impactReceipt && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="receipt-dialog-title"

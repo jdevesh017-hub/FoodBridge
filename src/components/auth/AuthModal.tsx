@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { authService } from '../../services/authService';
 import { UserRole } from '../../types';
+import { useModalA11y } from '../../hooks/useModalA11y';
 import { X, ShieldCheck, HeartHandshake, Truck, Building2, MapPin, AlertCircle, Info } from 'lucide-react';
 
 interface AuthModalProps {
@@ -45,17 +46,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [serviceRadius, setServiceRadius] = useState<number>(10);
   const [isLocating, setIsLocating] = useState(false);
 
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -144,6 +135,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div
+      ref={modalRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"

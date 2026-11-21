@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { donationService } from '../../services/donationService';
 import { FoodCategory, FoodDonation, StorageCondition, UserProfile, DietaryTag } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
+import { useModalA11y } from '../../hooks/useModalA11y';
 import {
   Plus,
   CheckCircle2,
@@ -78,25 +79,21 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
     else if (tab === 'history') onNavigate('donor_history');
   };
 
-  // Handle keyboard Escape for all modals
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showCreateModal) {
-          setShowCreateModal(false);
-          setEditingDonation(null);
-        } else if (cancellingDonation) {
-          setCancellingDonation(null);
-        } else if (inspectDonation) {
-          setInspectDonation(null);
-        } else if (receiptDonation) {
-          setReceiptDonation(null);
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showCreateModal, cancellingDonation, inspectDonation, receiptDonation]);
+  // Accessibility: Focus trap, focus restore, and Escape key handling for all modals
+  const isAnyModalOpen = Boolean(showCreateModal || cancellingDonation || inspectDonation || receiptDonation);
+  const handleCloseActiveModal = () => {
+    if (showCreateModal) {
+      setShowCreateModal(false);
+      setEditingDonation(null);
+    } else if (cancellingDonation) {
+      setCancellingDonation(null);
+    } else if (inspectDonation) {
+      setInspectDonation(null);
+    } else if (receiptDonation) {
+      setReceiptDonation(null);
+    }
+  };
+  const modalContainerRef = useModalA11y(isAnyModalOpen, handleCloseActiveModal);
 
   // Form State for Create & Edit
   const [foodName, setFoodName] = useState('');
@@ -916,6 +913,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
       {/* CREATE & EDIT DONATION MODAL */}
       {showCreateModal && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="create-donation-title"
@@ -1271,6 +1269,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
       {/* CANCEL DONATION MODAL */}
       {cancellingDonation && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="cancel-donation-title"
@@ -1344,6 +1343,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
       {/* INSPECT DETAILS MODAL */}
       {inspectDonation && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="inspect-donation-title"
@@ -1439,6 +1439,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
       {/* VERIFIED DELIVERY IMPACT RECEIPT MODAL */}
       {receiptDonation && receiptDonation.impactReceipt && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="receipt-donation-title"

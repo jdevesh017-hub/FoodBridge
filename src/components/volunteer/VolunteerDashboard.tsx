@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { volunteerService } from '../../services/volunteerService';
 import { FoodDonation, UserProfile } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
+import { useModalA11y } from '../../hooks/useModalA11y';
 
 const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
 
@@ -79,20 +80,16 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
     else if (tab === 'history') onNavigate('volunteer_history');
   };
 
-  // Handle keyboard Escape for all modals
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showPickupModal) setShowPickupModal(null);
-        else if (showArrivalAtNgoModal) setShowArrivalAtNgoModal(null);
-        else if (showCancelModal) setShowCancelModal(null);
-        else if (showFailedModal) setShowFailedModal(null);
-        else if (receiptDonation) setReceiptDonation(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showPickupModal, showArrivalAtNgoModal, showCancelModal, showFailedModal, receiptDonation]);
+  // Accessibility: Focus trap, focus restore, and Escape key handling for all modals
+  const isAnyModalOpen = Boolean(showPickupModal || showArrivalAtNgoModal || showCancelModal || showFailedModal || receiptDonation);
+  const handleCloseActiveModal = () => {
+    if (showPickupModal) setShowPickupModal(null);
+    else if (showArrivalAtNgoModal) setShowArrivalAtNgoModal(null);
+    else if (showCancelModal) setShowCancelModal(null);
+    else if (showFailedModal) setShowFailedModal(null);
+    else if (receiptDonation) setReceiptDonation(null);
+  };
+  const modalContainerRef = useModalA11y(isAnyModalOpen, handleCloseActiveModal);
 
   const availableTasks = volunteerService.getAvailableTasks(volunteerLat, volunteerLng);
   const myAssignments = volunteerId ? volunteerService.getMyAssignments(volunteerId) : [];
@@ -865,6 +862,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
       {/* MODAL: ARRIVAL AT NGO & HANDOVER NOTES */}
       {showArrivalAtNgoModal && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="arrival-ngo-modal-title"
@@ -925,6 +923,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
       {/* MODAL: VERIFY THERMAL CONDITION & PICKUP WEIGHT */}
       {showPickupModal && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="pickup-modal-title"
@@ -999,6 +998,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
       {/* MODAL: CANCEL ASSIGNMENT */}
       {showCancelModal && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="cancel-assignment-title"
@@ -1062,6 +1062,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
       {/* MODAL: REPORT FAILED PICKUP */}
       {showFailedModal && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="failed-pickup-title"
@@ -1126,6 +1127,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
       {/* VERIFIED IMPACT RECEIPT MODAL */}
       {receiptDonation && receiptDonation.impactReceipt && (
         <div
+          ref={modalContainerRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="receipt-dialog-title"

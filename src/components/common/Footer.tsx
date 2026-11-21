@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, ArrowUpRight, X, FileText } from 'lucide-react';
+import { useModalA11y } from '../../hooks/useModalA11y';
 
 interface FooterProps {
   onNavigate: (view: string) => void;
@@ -7,6 +8,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const [activeModal, setActiveModal] = useState<'privacy' | 'terms' | null>(null);
+  const modalRef = useModalA11y(Boolean(activeModal), () => setActiveModal(null));
 
   return (
     <footer className="bg-[#183D2B] text-[#F7F6F0] pt-16 pb-12 border-t border-[#2A523C]">
@@ -164,6 +166,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
       {/* Policy Modal Dialog */}
       {activeModal && (
         <div
+          ref={modalRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="policy-dialog-title"

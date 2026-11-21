@@ -3,6 +3,7 @@ import { FoodDonation, AuditEvent } from '../../types';
 import { ShieldCheck, AlertTriangle, AlertCircle, X, Thermometer, Clock, PackageCheck, BookOpen, History, Info, ListOrdered, User, FileText } from 'lucide-react';
 import { DOCUMENTED_SAFETY_THRESHOLDS } from '../../services/fssaiSafetyRules';
 import { auditEventRepository } from '../../repositories';
+import { useModalA11y } from '../../hooks/useModalA11y';
 
 interface FoodSafetyInspectorModalProps {
   donation: FoodDonation | null;
@@ -15,17 +16,7 @@ export const FoodSafetyInspectorModal: React.FC<FoodSafetyInspectorModalProps> =
 }) => {
   const [activeTab, setActiveTab] = useState<'safety' | 'audit'>('safety');
 
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    if (donation) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [donation, onClose]);
+  const modalRef = useModalA11y(Boolean(donation), onClose);
 
   const auditEvents = useMemo(() => {
     if (!donation) return [];
@@ -91,6 +82,7 @@ export const FoodSafetyInspectorModal: React.FC<FoodSafetyInspectorModalProps> =
 
   return (
     <div
+      ref={modalRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="safety-modal-title"
