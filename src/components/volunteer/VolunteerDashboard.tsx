@@ -2,7 +2,15 @@ import React, { useState } from 'react';
 import { volunteerService } from '../../services/volunteerService';
 import { FoodDonation, UserProfile } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
-import { LeafletMap } from '../map/LeafletMap';
+
+const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
+
+const MapFallback = () => (
+  <div className="h-full min-h-[300px] w-full bg-[#E8EDE2]/50 rounded-xl border border-[#E2DFD2] flex flex-col items-center justify-center gap-2 p-6">
+    <div className="w-6 h-6 border-2 border-[#183D2B]/20 border-t-[#183D2B] rounded-full animate-spin" />
+    <span className="text-xs text-[#647C50]">Loading live route map...</span>
+  </div>
+);
 import {
   Truck,
   MapPin,
@@ -576,12 +584,14 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           {/* Right: Map view */}
           <div className="lg:col-span-5 sticky top-28 space-y-3">
             <div className="h-[520px] w-full">
-              <LeafletMap
-                donations={availableTasks}
-                selectedDonationId={selectedTaskId}
-                onSelectDonation={(id) => setSelectedTaskId(id)}
-                showRouteForDonation={displayedDonation}
-              />
+              <React.Suspense fallback={<MapFallback />}>
+                <LeafletMap
+                  donations={availableTasks}
+                  selectedDonationId={selectedTaskId}
+                  onSelectDonation={(id) => setSelectedTaskId(id)}
+                  showRouteForDonation={displayedDonation}
+                />
+              </React.Suspense>
             </div>
             <p className="text-[11px] text-[#50544C] text-center">
               Routes connect donor kitchen to designated community shelter.
@@ -782,11 +792,13 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
               {/* Right: Active Route Map */}
               <div className="lg:col-span-5 h-[480px]">
-                <LeafletMap
-                  donations={[activeRun]}
-                  selectedDonationId={activeRun.id}
-                  showRouteForDonation={activeRun}
-                />
+                <React.Suspense fallback={<MapFallback />}>
+                  <LeafletMap
+                    donations={[activeRun]}
+                    selectedDonationId={activeRun.id}
+                    showRouteForDonation={activeRun}
+                  />
+                </React.Suspense>
               </div>
             </div>
           )}

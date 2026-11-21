@@ -3,7 +3,15 @@ import { donationService } from '../../services/donationService';
 import { volunteerService, calculateDistanceKm } from '../../services/volunteerService';
 import { FoodCategory, FoodDonation, UserProfile } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
-import { LeafletMap } from '../map/LeafletMap';
+
+const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
+
+const MapFallback = () => (
+  <div className="h-full min-h-[300px] w-full bg-[#E8EDE2]/50 rounded-xl border border-[#E2DFD2] flex flex-col items-center justify-center gap-2 p-6">
+    <div className="w-6 h-6 border-2 border-[#183D2B]/20 border-t-[#183D2B] rounded-full animate-spin" />
+    <span className="text-xs text-[#647C50]">Loading live route map...</span>
+  </div>
+);
 import {
   Filter,
   MapPin,
@@ -745,13 +753,15 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
             {/* Right Map Column */}
             <div className="lg:col-span-5 sticky top-28 space-y-3">
               <div className="h-[560px] w-full">
-                <LeafletMap
-                  donations={availableDonations}
-                  selectedDonationId={selectedDonationId}
-                  onSelectDonation={(id) => setSelectedDonationId(id)}
-                  centerLat={ngoLat}
-                  centerLng={ngoLng}
-                />
+                <React.Suspense fallback={<MapFallback />}>
+                  <LeafletMap
+                    donations={availableDonations}
+                    selectedDonationId={selectedDonationId}
+                    onSelectDonation={(id) => setSelectedDonationId(id)}
+                    centerLat={ngoLat}
+                    centerLng={ngoLng}
+                  />
+                </React.Suspense>
               </div>
               <p className="text-[11px] text-[#50544C] text-center">
                 Click any marker on the map to inspect available food lot and verified location.

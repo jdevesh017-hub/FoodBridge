@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { FoodDonation, UserRole } from './types';
 import { storageAdapter } from './services/storageAdapter';
 import { authService } from './services/authService';
@@ -15,12 +15,23 @@ import { Footer } from './components/common/Footer';
 
 // Views
 import { LandingPage } from './components/landing/LandingPage';
-import { DonorDashboard } from './components/donor/DonorDashboard';
-import { NgoDashboard } from './components/ngo/NgoDashboard';
-import { VolunteerDashboard } from './components/volunteer/VolunteerDashboard';
-import { WasteIntelligenceDashboard } from './components/intelligence/WasteIntelligenceDashboard';
 import { FoodSafetyPage } from './components/safety/FoodSafetyPage';
-import { ImpactView } from './components/impact/ImpactView';
+
+// Lazy-loaded Views (Code-split)
+const DonorDashboard = lazy(() => import('./components/donor/DonorDashboard').then((m) => ({ default: m.DonorDashboard })));
+const NgoDashboard = lazy(() => import('./components/ngo/NgoDashboard').then((m) => ({ default: m.NgoDashboard })));
+const VolunteerDashboard = lazy(() => import('./components/volunteer/VolunteerDashboard').then((m) => ({ default: m.VolunteerDashboard })));
+const WasteIntelligenceDashboard = lazy(() => import('./components/intelligence/WasteIntelligenceDashboard').then((m) => ({ default: m.WasteIntelligenceDashboard })));
+const ImpactView = lazy(() => import('./components/impact/ImpactView').then((m) => ({ default: m.ImpactView })));
+
+const ViewFallback = () => (
+  <div className="flex-1 flex items-center justify-center p-12 min-h-[50vh]">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 border-3 border-[#183D2B]/20 border-t-[#183D2B] rounded-full animate-spin" />
+      <span className="text-sm font-editorial text-[#647C50]">Loading view...</span>
+    </div>
+  </div>
+);
 
 // Modals
 import { FoodSafetyInspectorModal } from './components/safety/FoodSafetyInspectorModal';
@@ -171,92 +182,94 @@ export default function App() {
 
       {/* 3. Main View Port */}
       <main className="flex-1">
-        {currentView === 'landing' && (
-          <LandingPage
-            onNavigate={handleNavigate}
-            onOpenAuth={handleOpenAuth}
-          />
-        )}
-
-        {currentView === 'how_it_works' && (
-          <div className="space-y-12">
+        <Suspense fallback={<ViewFallback />}>
+          {currentView === 'landing' && (
             <LandingPage
               onNavigate={handleNavigate}
               onOpenAuth={handleOpenAuth}
             />
-          </div>
-        )}
+          )}
 
-        {/* DONOR PORTAL VIEWS */}
-        {session.role === 'donor' && isDonorView(currentView) && (
-          <DonorDashboard
-            user={session.profile}
-            initialTab={
-              currentView === 'donor_create'
-                ? 'create'
-                : currentView === 'donor_history'
-                ? 'history'
-                : currentView === 'donor_donations'
-                ? 'donations'
-                : 'overview'
-            }
-            onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
-            onShowToast={showToast}
-            onNavigate={handleNavigate}
-          />
-        )}
+          {currentView === 'how_it_works' && (
+            <div className="space-y-12">
+              <LandingPage
+                onNavigate={handleNavigate}
+                onOpenAuth={handleOpenAuth}
+              />
+            </div>
+          )}
 
-        {/* NGO PORTAL VIEWS */}
-        {session.role === 'ngo' && isNgoView(currentView) && (
-          <NgoDashboard
-            user={session.profile}
-            initialTab={
-              currentView === 'ngo_discover'
-                ? 'discover'
-                : currentView === 'ngo_reservations'
-                ? 'reservations'
-                : currentView === 'ngo_deliveries'
-                ? 'deliveries'
-                : currentView === 'ngo_history'
-                ? 'history'
-                : 'overview'
-            }
-            onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
-            onShowToast={showToast}
-            onNavigate={handleNavigate}
-          />
-        )}
+          {/* DONOR PORTAL VIEWS */}
+          {session.role === 'donor' && isDonorView(currentView) && (
+            <DonorDashboard
+              user={session.profile}
+              initialTab={
+                currentView === 'donor_create'
+                  ? 'create'
+                  : currentView === 'donor_history'
+                  ? 'history'
+                  : currentView === 'donor_donations'
+                  ? 'donations'
+                  : 'overview'
+              }
+              onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
+              onShowToast={showToast}
+              onNavigate={handleNavigate}
+            />
+          )}
 
-        {/* VOLUNTEER / DELIVERY PARTNER PORTAL VIEWS */}
-        {session.role === 'volunteer' && isVolunteerView(currentView) && (
-          <VolunteerDashboard
-            user={session.profile}
-            initialTab={
-              currentView === 'volunteer_available'
-                ? 'available'
-                : currentView === 'volunteer_active'
-                ? 'active'
-                : currentView === 'volunteer_history'
-                ? 'history'
-                : 'overview'
-            }
-            onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
-            onShowToast={showToast}
-            onNavigate={handleNavigate}
-          />
-        )}
+          {/* NGO PORTAL VIEWS */}
+          {session.role === 'ngo' && isNgoView(currentView) && (
+            <NgoDashboard
+              user={session.profile}
+              initialTab={
+                currentView === 'ngo_discover'
+                  ? 'discover'
+                  : currentView === 'ngo_reservations'
+                  ? 'reservations'
+                  : currentView === 'ngo_deliveries'
+                  ? 'deliveries'
+                  : currentView === 'ngo_history'
+                  ? 'history'
+                  : 'overview'
+              }
+              onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
+              onShowToast={showToast}
+              onNavigate={handleNavigate}
+            />
+          )}
 
-        {currentView === 'intelligence' && (
-          <WasteIntelligenceDashboard
-            currentUser={session.profile}
-            currentRole={session.role}
-            onNavigate={handleNavigate}
-          />
-        )}
+          {/* VOLUNTEER / DELIVERY PARTNER PORTAL VIEWS */}
+          {session.role === 'volunteer' && isVolunteerView(currentView) && (
+            <VolunteerDashboard
+              user={session.profile}
+              initialTab={
+                currentView === 'volunteer_available'
+                  ? 'available'
+                  : currentView === 'volunteer_active'
+                  ? 'active'
+                  : currentView === 'volunteer_history'
+                  ? 'history'
+                  : 'overview'
+              }
+              onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
+              onShowToast={showToast}
+              onNavigate={handleNavigate}
+            />
+          )}
 
-        {currentView === 'safety' && <FoodSafetyPage />}
+          {currentView === 'intelligence' && (
+            <WasteIntelligenceDashboard
+              currentUser={session.profile}
+              currentRole={session.role}
+              onNavigate={handleNavigate}
+            />
+          )}
 
-        {currentView === 'impact' && <ImpactView />}
+          {currentView === 'safety' && <FoodSafetyPage />}
+
+          {currentView === 'impact' && <ImpactView />}
+        </Suspense>
       </main>
 
       {/* 4. Footer */}
