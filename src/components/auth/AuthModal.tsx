@@ -46,6 +46,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [serviceRadius, setServiceRadius] = useState<number>(10);
   const [isLocating, setIsLocating] = useState(false);
 
+  const isDemoAvailable = Boolean(import.meta.env.DEV || import.meta.env.VITE_DEMO_MODE === 'true');
+
   const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
@@ -132,7 +134,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onAuthenticated(res.user.role);
       onClose();
     } else {
-      onShowToast(res.error || 'Failed to sign in. Please verify your email or use a Demo Persona.', 'error');
+      onShowToast(
+        res.error ||
+          (isDemoAvailable
+            ? 'Failed to sign in. Please verify your email or use a Demo Persona below.'
+            : 'Failed to sign in. Please verify your email or register a new account.'),
+        'error'
+      );
     }
   };
 
@@ -265,7 +273,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 text-[11px] leading-relaxed flex items-start gap-2">
                   <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Prototype Mode Notice:</strong> This prototype uses client-side localStorage. Enter an email of an account you registered in this browser, or switch to one of the pre-configured Demo Personas below to explore.
+                    <strong>Prototype Notice:</strong> This client-side prototype authenticates via registered email addresses.{isDemoAvailable ? ' Enter your registered email, or switch to one of the curated Demo Personas below to explore.' : ' Enter your registered email address or click "Register New Account" above to create one.'}
                   </div>
                 </div>
 
@@ -303,50 +311,52 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   Sign In to Registered Account
                 </button>
 
-                {/* 1-Click Persona Quick Logins for Evaluator Ease */}
-                <div className="pt-4 border-t border-[#E2DFD2] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-semibold text-[#647C50] uppercase tracking-wider">
-                      Or Launch Instant Demo Persona:
-                    </p>
-                    <span className="text-[10px] bg-[#E8EDE2] text-[#183D2B] px-1.5 py-0.5 rounded font-mono font-medium">Demo Mode</span>
+                {/* 1-Click Persona Quick Logins for Evaluator Ease (Gated by Demo Mode Flag) */}
+                {isDemoAvailable && (
+                  <div className="pt-4 border-t border-[#E2DFD2] space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] font-semibold text-[#647C50] uppercase tracking-wider">
+                        Or Launch Instant Demo Persona:
+                      </p>
+                      <span className="text-[10px] bg-[#E8EDE2] text-[#183D2B] px-1.5 py-0.5 rounded font-mono font-medium">Demo Mode</span>
+                    </div>
+                    <div className="flex flex-col gap-1.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => handleQuickPersona('donor')}
+                        className="p-2 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors"
+                      >
+                        <div>
+                          <span className="font-medium">Chef Marcus</span>
+                          <span className="text-[11px] text-[#50544C]"> (Grand Meridian Banquet & Hotel)</span>
+                        </div>
+                        <span className="text-[10px] text-[#647C50] font-mono font-semibold">Donor</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickPersona('ngo')}
+                        className="p-2 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors"
+                      >
+                        <div>
+                          <span className="font-medium">Sister Teresa</span>
+                          <span className="text-[11px] text-[#50544C]"> (Hope Community Kitchen & Shelter)</span>
+                        </div>
+                        <span className="text-[10px] text-[#C77A54] font-mono font-semibold">NGO</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickPersona('volunteer')}
+                        className="p-2 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors"
+                      >
+                        <div>
+                          <span className="font-medium">Alex Rivera</span>
+                          <span className="text-[11px] text-[#50544C]"> (Community Courier Dispatch)</span>
+                        </div>
+                        <span className="text-[10px] text-[#183D2B] font-mono font-semibold">Volunteer</span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1.5 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => handleQuickPersona('donor')}
-                      className="p-2 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors"
-                    >
-                      <div>
-                        <span className="font-medium">Chef Marcus</span>
-                        <span className="text-[11px] text-[#50544C]"> (Grand Meridian Banquet & Hotel)</span>
-                      </div>
-                      <span className="text-[10px] text-[#647C50] font-mono font-semibold">Donor</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickPersona('ngo')}
-                      className="p-2 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors"
-                    >
-                      <div>
-                        <span className="font-medium">Sister Teresa</span>
-                        <span className="text-[11px] text-[#50544C]"> (Hope Community Kitchen & Shelter)</span>
-                      </div>
-                      <span className="text-[10px] text-[#C77A54] font-mono font-semibold">NGO</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickPersona('volunteer')}
-                      className="p-2 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors"
-                    >
-                      <div>
-                        <span className="font-medium">Alex Rivera</span>
-                        <span className="text-[11px] text-[#50544C]"> (Community Courier Dispatch)</span>
-                      </div>
-                      <span className="text-[10px] text-[#183D2B] font-mono font-semibold">Volunteer</span>
-                    </button>
-                  </div>
-                </div>
+                )}
               </form>
             ) : (
               /* REGISTRATION FORM */
