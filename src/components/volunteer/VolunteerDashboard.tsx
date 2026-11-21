@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { volunteerService } from '../../services/volunteerService';
 import { FoodDonation, UserProfile } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
-import { useModalA11y } from '../../hooks/useModalA11y';
+import { AccessibleModal } from '../common/AccessibleModal';
 
 const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
 
@@ -80,16 +80,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
     else if (tab === 'history') onNavigate('volunteer_history');
   };
 
-  // Accessibility: Focus trap, focus restore, and Escape key handling for all modals
-  const isAnyModalOpen = Boolean(showPickupModal || showArrivalAtNgoModal || showCancelModal || showFailedModal || receiptDonation);
-  const handleCloseActiveModal = () => {
-    if (showPickupModal) setShowPickupModal(null);
-    else if (showArrivalAtNgoModal) setShowArrivalAtNgoModal(null);
-    else if (showCancelModal) setShowCancelModal(null);
-    else if (showFailedModal) setShowFailedModal(null);
-    else if (receiptDonation) setReceiptDonation(null);
-  };
-  const modalContainerRef = useModalA11y(isAnyModalOpen, handleCloseActiveModal);
+
 
   const availableTasks = volunteerService.getAvailableTasks(volunteerLat, volunteerLng);
   const myAssignments = volunteerId ? volunteerService.getMyAssignments(volunteerId) : [];
@@ -861,12 +852,10 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
       {/* MODAL: ARRIVAL AT NGO & HANDOVER NOTES */}
       {showArrivalAtNgoModal && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(showArrivalAtNgoModal)}
+          onClose={() => setShowArrivalAtNgoModal(null)}
           aria-labelledby="arrival-ngo-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
@@ -917,17 +906,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* MODAL: VERIFY THERMAL CONDITION & PICKUP WEIGHT */}
       {showPickupModal && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(showPickupModal)}
+          onClose={() => setShowPickupModal(null)}
           aria-labelledby="pickup-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
@@ -992,17 +979,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* MODAL: CANCEL ASSIGNMENT */}
       {showCancelModal && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(showCancelModal)}
+          onClose={() => setShowCancelModal(null)}
           aria-labelledby="cancel-assignment-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
@@ -1056,17 +1041,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* MODAL: REPORT FAILED PICKUP */}
       {showFailedModal && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(showFailedModal)}
+          onClose={() => setShowFailedModal(null)}
           aria-labelledby="failed-pickup-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
@@ -1121,17 +1104,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* VERIFIED IMPACT RECEIPT MODAL */}
       {receiptDonation && receiptDonation.impactReceipt && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(receiptDonation && receiptDonation.impactReceipt)}
+          onClose={() => setReceiptDonation(null)}
           aria-labelledby="receipt-dialog-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
@@ -1188,7 +1169,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </AccessibleModal>
       )}
     </div>
   );

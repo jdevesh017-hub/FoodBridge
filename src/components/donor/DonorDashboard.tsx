@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { donationService } from '../../services/donationService';
 import { FoodCategory, FoodDonation, StorageCondition, UserProfile, DietaryTag } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
-import { useModalA11y } from '../../hooks/useModalA11y';
+import { AccessibleModal } from '../common/AccessibleModal';
 import {
   Plus,
   CheckCircle2,
@@ -78,22 +78,6 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
     else if (tab === 'donations') onNavigate('donor_donations');
     else if (tab === 'history') onNavigate('donor_history');
   };
-
-  // Accessibility: Focus trap, focus restore, and Escape key handling for all modals
-  const isAnyModalOpen = Boolean(showCreateModal || cancellingDonation || inspectDonation || receiptDonation);
-  const handleCloseActiveModal = () => {
-    if (showCreateModal) {
-      setShowCreateModal(false);
-      setEditingDonation(null);
-    } else if (cancellingDonation) {
-      setCancellingDonation(null);
-    } else if (inspectDonation) {
-      setInspectDonation(null);
-    } else if (receiptDonation) {
-      setReceiptDonation(null);
-    }
-  };
-  const modalContainerRef = useModalA11y(isAnyModalOpen, handleCloseActiveModal);
 
   // Form State for Create & Edit
   const [foodName, setFoodName] = useState('');
@@ -912,12 +896,13 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
 
       {/* CREATE & EDIT DONATION MODAL */}
       {showCreateModal && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={showCreateModal}
+          onClose={() => {
+            setShowCreateModal(false);
+            setEditingDonation(null);
+          }}
           aria-labelledby="create-donation-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-2xl w-full border border-[#E2DFD2] shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
             <div className="px-6 py-4 border-b border-[#E2DFD2] bg-[#E8EDE2] flex items-center justify-between">
@@ -1263,17 +1248,15 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* CANCEL DONATION MODAL */}
       {cancellingDonation && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(cancellingDonation)}
+          onClose={() => setCancellingDonation(null)}
           aria-labelledby="cancel-donation-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
@@ -1337,17 +1320,15 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* INSPECT DETAILS MODAL */}
       {inspectDonation && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(inspectDonation)}
+          onClose={() => setInspectDonation(null)}
           aria-labelledby="inspect-donation-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
@@ -1433,17 +1414,15 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* VERIFIED DELIVERY IMPACT RECEIPT MODAL */}
       {receiptDonation && receiptDonation.impactReceipt && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(receiptDonation && receiptDonation.impactReceipt)}
+          onClose={() => setReceiptDonation(null)}
           aria-labelledby="receipt-donation-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
@@ -1503,7 +1482,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </AccessibleModal>
       )}
     </div>
   );

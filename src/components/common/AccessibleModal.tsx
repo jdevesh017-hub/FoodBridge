@@ -32,6 +32,11 @@ export const AccessibleModal: React.FC<AccessibleModalProps> = ({
       aria-labelledby={ariaLabelledBy}
       className={className}
       tabIndex={-1}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       {children}
     </div>

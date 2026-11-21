@@ -3,7 +3,7 @@ import { donationService } from '../../services/donationService';
 import { volunteerService, calculateDistanceKm } from '../../services/volunteerService';
 import { FoodCategory, FoodDonation, UserProfile } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
-import { useModalA11y } from '../../hooks/useModalA11y';
+import { AccessibleModal } from '../common/AccessibleModal';
 
 const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
 
@@ -98,17 +98,6 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
     else if (tab === 'deliveries') onNavigate('ngo_deliveries');
     else if (tab === 'history') onNavigate('ngo_history');
   };
-
-  // Accessibility: Focus trap, focus restore, and Escape key handling for all modals
-  const isAnyModalOpen = Boolean(reservingDonation || confirmReceiptDonation || discrepancyDonation || receiptDonation || inspectDonation);
-  const handleCloseActiveModal = () => {
-    if (reservingDonation) setReservingDonation(null);
-    else if (confirmReceiptDonation) setConfirmReceiptDonation(null);
-    else if (discrepancyDonation) setDiscrepancyDonation(null);
-    else if (receiptDonation) setReceiptDonation(null);
-    else if (inspectDonation) setInspectDonation(null);
-  };
-  const modalContainerRef = useModalA11y(isAnyModalOpen, handleCloseActiveModal);
 
   const allDonations = donationService.getAllDonations();
 
@@ -1063,12 +1052,10 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
 
       {/* RESERVATION CONFIRMATION DIALOG (Atomic Locking Step) */}
       {reservingDonation && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(reservingDonation)}
+          onClose={() => setReservingDonation(null)}
           aria-labelledby="confirm-reservation-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
             <div className="flex items-start justify-between">
@@ -1132,17 +1119,15 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* NGO CONFIRM FOOD RECEIVED MODAL */}
       {confirmReceiptDonation && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(confirmReceiptDonation)}
+          onClose={() => setConfirmReceiptDonation(null)}
           aria-labelledby="confirm-receipt-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
             <div className="flex items-start justify-between border-b border-[#E2DFD2] pb-3">
@@ -1226,17 +1211,15 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* DISCREPANCY REPORTING MODAL */}
       {discrepancyDonation && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(discrepancyDonation)}
+          onClose={() => setDiscrepancyDonation(null)}
           aria-labelledby="discrepancy-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
             <div className="flex items-start justify-between border-b border-[#E2DFD2] pb-3">
@@ -1318,17 +1301,15 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </AccessibleModal>
       )}
 
       {/* VERIFIED DELIVERY IMPACT RECEIPT MODAL */}
       {receiptDonation && receiptDonation.impactReceipt && (
-        <div
-          ref={modalContainerRef}
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={Boolean(receiptDonation && receiptDonation.impactReceipt)}
+          onClose={() => setReceiptDonation(null)}
           aria-labelledby="receipt-dialog-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
@@ -1389,7 +1370,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </AccessibleModal>
       )}
     </div>
   );

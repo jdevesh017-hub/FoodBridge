@@ -9,6 +9,7 @@ import {
 import { analyticsService, MEAL_PORTION_KG, CO2_PER_KG_FOOD } from '../../services/analyticsService';
 import { storageAdapter } from '../../services/storageAdapter';
 import { demandRepository } from '../../repositories';
+import { AccessibleModal } from '../common/AccessibleModal';
 import {
   Sparkles,
   TrendingUp,
@@ -803,11 +804,10 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
 
       {/* MODAL: SUBMIT SHELTER DEMAND TARGET */}
       {showDemandModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
+        <AccessibleModal
+          isOpen={showDemandModal}
+          onClose={() => setShowDemandModal(false)}
           aria-labelledby="demand-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
         >
           <form
             onSubmit={handleCreateDemand}
@@ -916,7 +916,7 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
               </button>
             </div>
           </form>
-        </div>
+        </AccessibleModal>
       )}
     </div>
   );
