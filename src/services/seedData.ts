@@ -162,7 +162,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    photoUrl: '/images/hero_food_redistribution_1794331332502.jpg',
+    photoUrl: '/images/hero_food_redistribution_1794331332502.webp',
   },
   {
     id: 'don_artisan_sourdough_pastries',
@@ -237,7 +237,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    photoUrl: '/images/how_it_works_kitchen_1794331333467.jpg',
+    photoUrl: '/images/how_it_works_kitchen_1794331333467.webp',
   },
   {
     id: 'don_canteen_steamed_veg',
@@ -293,7 +293,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 75 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 75 * 60 * 1000).toISOString(),
-    photoUrl: '/images/community_meal_handover_1794331333898.jpg',
+    photoUrl: '/images/community_meal_handover_1794331333898.webp',
   },
   {
     id: 'don_yesterday_completed_sample',
@@ -377,7 +377,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    photoUrl: '/images/community_meal_handover_1794331333898.jpg',
+    photoUrl: '/images/community_meal_handover_1794331333898.webp',
   },
   {
     id: 'don_seed_fresh_produce_market',
@@ -461,7 +461,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 69.8 * 60 * 60 * 1000).toISOString(),
-    photoUrl: '/images/hero_food_redistribution_1794331332502.jpg',
+    photoUrl: '/images/hero_food_redistribution_1794331332502.webp',
   },
   {
     id: 'don_seed_dairy_yogurt_lots',
@@ -545,7 +545,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 120 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 117.8 * 60 * 60 * 1000).toISOString(),
-    photoUrl: '/images/community_meal_handover_1794331333898.jpg',
+    photoUrl: '/images/community_meal_handover_1794331333898.webp',
   },
   {
     id: 'don_seed_friday_banquet_curry',
@@ -629,7 +629,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 168 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 166.2 * 60 * 60 * 1000).toISOString(),
-    photoUrl: '/images/how_it_works_kitchen_1794331333467.jpg',
+    photoUrl: '/images/how_it_works_kitchen_1794331333467.webp',
   },
   {
     id: 'don_seed_monday_sourdough',
@@ -713,7 +713,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 216 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 213.9 * 60 * 60 * 1000).toISOString(),
-    photoUrl: '/images/how_it_works_kitchen_1794331333467.jpg',
+    photoUrl: '/images/how_it_works_kitchen_1794331333467.webp',
   },
   {
     id: 'don_seed_packaged_rice_staples',
@@ -797,7 +797,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 288 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 285.8 * 60 * 60 * 1000).toISOString(),
-    photoUrl: '/images/hero_food_redistribution_1794331332502.jpg',
+    photoUrl: '/images/hero_food_redistribution_1794331332502.webp',
   },
   {
     id: 'don_seed_failed_spill_incident',
@@ -865,7 +865,7 @@ export const SEED_DONATIONS: FoodDonation[] = [
     ],
     createdAt: new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 94.5 * 60 * 60 * 1000).toISOString(),
-    photoUrl: '/images/community_meal_handover_1794331333898.jpg',
+    photoUrl: '/images/community_meal_handover_1794331333898.webp',
   },
 ];
 

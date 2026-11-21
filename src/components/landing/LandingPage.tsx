@@ -78,7 +78,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="lg:col-span-5 relative">
             <div className="relative rounded-2xl overflow-hidden shadow-lg border border-[#E2DFD2] aspect-[4/3] bg-[#E8EDE2]">
               <img
-                src="/images/hero_food_redistribution_1794331332502.jpg"
+                src="/images/hero_food_redistribution_1794331332502.webp"
                 alt="Community volunteers packing fresh nutritious meals"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
