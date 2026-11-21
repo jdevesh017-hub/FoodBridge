@@ -87,11 +87,8 @@ export class DonationService {
   /**
    * NGO releases reservation back to public available pool.
    */
-  public releaseReservation(donationId: string, ngoName: string, reason?: string): { success: boolean; error?: string } {
-    const item = donationRepository.findById(donationId);
-    const prevNgoId = item?.reservedByNgoId || 'unknown_ngo';
-
-    const res = reservationRepository.releaseReservation(donationId, ngoName);
+  public releaseReservation(donationId: string, ngoId: string, ngoName: string, reason?: string): { success: boolean; error?: string } {
+    const res = reservationRepository.releaseReservation(donationId, ngoId, ngoName, reason);
     if (!res.success) {
       return res;
     }
@@ -99,7 +96,7 @@ export class DonationService {
     auditEventRepository.record({
       entityId: donationId,
       entityType: 'donation',
-      actorId: prevNgoId,
+      actorId: ngoId,
       actorName: ngoName,
       actorRole: 'ngo',
       eventType: 'reservation_released',

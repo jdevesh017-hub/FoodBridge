@@ -197,7 +197,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
 
   // Step 3: Release reservation back to pool
   const handleReleaseReservation = (donationId: string) => {
-    const res = donationService.releaseReservation(donationId, ngoName, 'Released by NGO');
+    const res = donationService.releaseReservation(donationId, ngoId, ngoName, 'Released by NGO');
     if (res.success) {
       onShowToast('Reservation released. The food is now available for other community organizations.', 'info');
     } else {
@@ -223,7 +223,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
       return;
     }
 
-    const res = volunteerService.confirmNgoReceipt(confirmReceiptDonation.id, ngoName, {
+    const res = volunteerService.confirmNgoReceipt(confirmReceiptDonation.id, ngoId, ngoName, {
       receivedKg,
       receivingSupervisorName: receivingSupervisorInput,
       notes: receiptNotesInput,

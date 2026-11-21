@@ -80,8 +80,12 @@ export class VolunteerService {
   /**
    * Step 2: Volunteer confirms physical arrival at donor kitchen.
    */
-  public confirmArrivalAtDonor(donationId: string, volunteerName: string): { success: boolean; error?: string } {
-    const res = deliveryRepository.confirmArrivalAtDonor(donationId, volunteerName);
+  public confirmArrivalAtDonor(
+    donationId: string,
+    volunteerId: string,
+    volunteerName: string
+  ): { success: boolean; error?: string } {
+    const res = deliveryRepository.confirmArrivalAtDonor(donationId, volunteerId, volunteerName);
     if (!res.success) {
       return res;
     }
@@ -90,7 +94,7 @@ export class VolunteerService {
     auditEventRepository.record({
       entityId: donationId,
       entityType: 'donation',
-      actorId: item?.assignedVolunteerId || 'unknown_volunteer',
+      actorId: item?.assignedVolunteerId || volunteerId,
       actorName: volunteerName,
       actorRole: 'volunteer',
       eventType: 'volunteer_arrived',
@@ -106,10 +110,11 @@ export class VolunteerService {
    */
   public confirmFoodPickup(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     confirmedKg?: number
   ): { success: boolean; error?: string } {
-    const res = deliveryRepository.confirmPickup(donationId, volunteerName, confirmedKg || 0);
+    const res = deliveryRepository.confirmPickup(donationId, volunteerId, volunteerName, confirmedKg || 0);
     if (!res.success || !res.donation) {
       return { success: false, error: res.error };
     }
@@ -117,7 +122,7 @@ export class VolunteerService {
     auditEventRepository.record({
       entityId: res.donation.id,
       entityType: 'donation',
-      actorId: res.donation.assignedVolunteerId || 'unknown_volunteer',
+      actorId: res.donation.assignedVolunteerId || volunteerId,
       actorName: volunteerName,
       actorRole: 'volunteer',
       eventType: 'pickup_confirmed',
@@ -134,10 +139,11 @@ export class VolunteerService {
    */
   public confirmArrivalAtNgo(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     notes?: string
   ): { success: boolean; donation?: FoodDonation; error?: string } {
-    return deliveryRepository.confirmArrivalAtNgo(donationId, volunteerName, notes);
+    return deliveryRepository.confirmArrivalAtNgo(donationId, volunteerId, volunteerName, notes);
   }
 
   /**
@@ -146,6 +152,7 @@ export class VolunteerService {
    */
   public confirmNgoReceipt(
     donationId: string,
+    ngoId: string,
     ngoName: string,
     params: {
       receivedKg: number;
@@ -153,7 +160,7 @@ export class VolunteerService {
       notes?: string;
     }
   ): { success: boolean; donation?: FoodDonation; error?: string } {
-    const res = deliveryRepository.confirmReceipt(donationId, ngoName, params);
+    const res = deliveryRepository.confirmReceipt(donationId, ngoId, ngoName, params);
     if (!res.success || !res.donation) {
       return res;
     }
@@ -161,7 +168,7 @@ export class VolunteerService {
     auditEventRepository.record({
       entityId: res.donation.id,
       entityType: 'donation',
-      actorId: res.donation.reservedByNgoId || 'unknown_ngo',
+      actorId: res.donation.reservedByNgoId || ngoId,
       actorName: `${ngoName} (${params.receivingSupervisorName})`,
       actorRole: 'ngo',
       eventType: 'delivery_confirmed',
@@ -227,13 +234,11 @@ export class VolunteerService {
    */
   public cancelAssignment(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     reason: string
   ): { success: boolean; error?: string } {
-    const itemBefore = donationRepository.findById(donationId);
-    const prevVolunteerId = itemBefore?.assignedVolunteerId || 'unknown_volunteer';
-
-    const res = deliveryRepository.cancelAssignment(donationId, volunteerName, reason);
+    const res = deliveryRepository.cancelAssignment(donationId, volunteerId, volunteerName, reason);
     if (!res.success) {
       return res;
     }
@@ -241,7 +246,7 @@ export class VolunteerService {
     auditEventRepository.record({
       entityId: donationId,
       entityType: 'donation',
-      actorId: prevVolunteerId,
+      actorId: volunteerId,
       actorName: volunteerName,
       actorRole: 'volunteer',
       eventType: 'volunteer_cancelled',
@@ -257,20 +262,20 @@ export class VolunteerService {
    */
   public reportFailedPickup(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     reason: string,
     details?: string
   ): { success: boolean; error?: string } {
-    const res = deliveryRepository.reportPickupFailure(donationId, volunteerName, reason, details);
+    const res = deliveryRepository.reportPickupFailure(donationId, volunteerId, volunteerName, reason, details);
     if (!res.success) {
       return res;
     }
 
-    const item = donationRepository.findById(donationId);
     auditEventRepository.record({
       entityId: donationId,
       entityType: 'donation',
-      actorId: item?.assignedVolunteerId || 'unknown_volunteer',
+      actorId: volunteerId,
       actorName: volunteerName,
       actorRole: 'volunteer',
       eventType: 'pickup_failed',

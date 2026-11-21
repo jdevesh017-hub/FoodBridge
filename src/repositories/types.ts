@@ -47,7 +47,12 @@ export interface IReservationRepository {
     donationId: string,
     ngo: { id: string; name: string; address: string; lat: number; lng: number }
   ): { success: boolean; donation?: FoodDonation; error?: string };
-  releaseReservation(donationId: string, ngoName: string): { success: boolean; error?: string };
+  releaseReservation(
+    donationId: string,
+    ngoId: string,
+    ngoName: string,
+    reason?: string
+  ): { success: boolean; error?: string };
 }
 
 export interface IDeliveryRepository {
@@ -63,21 +68,25 @@ export interface IDeliveryRepository {
   ): { success: boolean; donation?: FoodDonation; error?: string };
   confirmArrivalAtDonor(
     donationId: string,
+    volunteerId: string,
     volunteerName: string
   ): { success: boolean; error?: string };
   confirmPickup(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
-    confirmedKg: number,
+    confirmedKg?: number,
     notes?: string
   ): { success: boolean; donation?: FoodDonation; error?: string };
   confirmArrivalAtNgo(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     notes?: string
   ): { success: boolean; donation?: FoodDonation; error?: string };
   confirmReceipt(
     donationId: string,
+    ngoId: string,
     ngoName: string,
     params: {
       receivedKg: number;
@@ -87,12 +96,14 @@ export interface IDeliveryRepository {
   ): { success: boolean; donation?: FoodDonation; error?: string };
   reportPickupFailure(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     reason: string,
     details?: string
   ): { success: boolean; error?: string };
   cancelAssignment(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     reason: string
   ): { success: boolean; error?: string };

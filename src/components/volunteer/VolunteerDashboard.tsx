@@ -120,7 +120,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
   // Progression Step 2: Arrived at Donor
   const handleConfirmArrival = (donationId: string) => {
-    const res = volunteerService.confirmArrivalAtDonor(donationId, volunteerName);
+    const res = volunteerService.confirmArrivalAtDonor(donationId, volunteerId, volunteerName);
     if (res.success) {
       onShowToast('Arrival at donor confirmed. Begin temperature & packaging audit.', 'info');
     } else {
@@ -134,7 +134,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
     if (!showPickupModal) return;
 
     const weight = verifiedWeightInput ? Number(verifiedWeightInput) : undefined;
-    const res = volunteerService.confirmFoodPickup(showPickupModal.id, volunteerName, weight);
+    const res = volunteerService.confirmFoodPickup(showPickupModal.id, volunteerId, volunteerName, weight);
 
     setShowPickupModal(null);
     if (res.success) {
@@ -149,7 +149,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
     e.preventDefault();
     if (!showArrivalAtNgoModal) return;
 
-    const res = volunteerService.confirmArrivalAtNgo(showArrivalAtNgoModal.id, volunteerName, arrivalNotesInput);
+    const res = volunteerService.confirmArrivalAtNgo(showArrivalAtNgoModal.id, volunteerId, volunteerName, arrivalNotesInput);
     setShowArrivalAtNgoModal(null);
 
     if (res.success) {
@@ -164,7 +164,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
     e.preventDefault();
     if (!showCancelModal) return;
 
-    const res = volunteerService.cancelAssignment(showCancelModal.id, volunteerName, cancelReason);
+    const res = volunteerService.cancelAssignment(showCancelModal.id, volunteerId, volunteerName, cancelReason);
     setShowCancelModal(null);
 
     if (res.success) {
@@ -180,7 +180,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
     e.preventDefault();
     if (!showFailedModal) return;
 
-    const res = volunteerService.reportFailedPickup(showFailedModal.id, volunteerName, failedReason);
+    const res = volunteerService.reportFailedPickup(showFailedModal.id, volunteerId, volunteerName, failedReason);
     setShowFailedModal(null);
 
     if (res.success) {

@@ -146,12 +146,29 @@ export class LocalStorageReservationRepository implements IReservationRepository
     return { success: true, donation: item };
   }
 
-  public releaseReservation(donationId: string, ngoName: string): { success: boolean; error?: string } {
+  public releaseReservation(
+    donationId: string,
+    ngoId: string,
+    ngoName: string,
+    reason?: string
+  ): { success: boolean; error?: string } {
     const donations = storageAdapter.getDonations();
     const index = donations.findIndex((d) => d.id === donationId);
 
     if (index === -1) return { success: false, error: 'Donation not found.' };
     const item = donations[index];
+
+    const roleCheck = LifecycleManager.validateRolePermission('release_reservation', 'ngo', {
+      reservingNgoId: item.reservedByNgoId,
+      actorId: ngoId,
+    });
+    if (!roleCheck.allowed) {
+      return { success: false, error: roleCheck.error };
+    }
+
+    if (item.reservedByNgoId && item.reservedByNgoId !== ngoId) {
+      return { success: false, error: 'Unauthorized: You can only release reservations claimed by your own organization.' };
+    }
 
     const transitionCheck = LifecycleManager.validateTransition(item.status, 'available');
     if (!transitionCheck.allowed) {
@@ -171,7 +188,7 @@ export class LocalStorageReservationRepository implements IReservationRepository
       status: 'available',
       timestamp: nowIso,
       actor: ngoName,
-      note: 'Reservation cancelled by NGO. Returned to available pool.',
+      note: `Reservation cancelled by NGO. ${reason ? `Reason: ${reason}` : 'Returned to available pool.'}`,
     });
 
     donations[index] = item;

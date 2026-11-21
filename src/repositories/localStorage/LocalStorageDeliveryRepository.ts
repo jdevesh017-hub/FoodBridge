@@ -116,6 +116,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
 
   public confirmArrivalAtDonor(
     donationId: string,
+    volunteerId: string,
     volunteerName: string
   ): { success: boolean; error?: string } {
     const donations = storageAdapter.getDonations();
@@ -123,6 +124,18 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
     if (index === -1) return { success: false, error: 'Task not found.' };
 
     const item = donations[index];
+    const roleCheck = LifecycleManager.validateRolePermission('confirm_pickup', 'volunteer', {
+      assignedCourierId: item.assignedVolunteerId,
+      actorId: volunteerId,
+    });
+    if (!roleCheck.allowed) {
+      return { success: false, error: roleCheck.error };
+    }
+
+    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+      return { success: false, error: 'Unauthorized: Only the assigned courier can confirm arrival at donor.' };
+    }
+
     const transitionCheck = LifecycleManager.validateTransition(item.status, 'arrived_at_donor');
     if (!transitionCheck.allowed) {
       return { success: false, error: transitionCheck.error };
@@ -146,6 +159,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
 
   public confirmPickup(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     confirmedKg?: number,
     notes?: string
@@ -155,6 +169,18 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
     if (index === -1) return { success: false, error: 'Task not found.' };
 
     const item = donations[index];
+    const roleCheck = LifecycleManager.validateRolePermission('confirm_pickup', 'volunteer', {
+      assignedCourierId: item.assignedVolunteerId,
+      actorId: volunteerId,
+    });
+    if (!roleCheck.allowed) {
+      return { success: false, error: roleCheck.error };
+    }
+
+    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+      return { success: false, error: 'Unauthorized: Only the assigned courier can confirm pickup for this task.' };
+    }
+
     const transitionCheck = LifecycleManager.validateTransition(item.status, 'picked_up');
     if (!transitionCheck.allowed) {
       return { success: false, error: transitionCheck.error };
@@ -184,6 +210,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
 
   public confirmArrivalAtNgo(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     notes?: string
   ): { success: boolean; donation?: FoodDonation; error?: string } {
@@ -192,6 +219,18 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
     if (index === -1) return { success: false, error: 'Task not found.' };
 
     const item = donations[index];
+    const roleCheck = LifecycleManager.validateRolePermission('confirm_pickup', 'volunteer', {
+      assignedCourierId: item.assignedVolunteerId,
+      actorId: volunteerId,
+    });
+    if (!roleCheck.allowed) {
+      return { success: false, error: roleCheck.error };
+    }
+
+    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+      return { success: false, error: 'Unauthorized: Only the assigned courier can confirm arrival at NGO.' };
+    }
+
     const transitionCheck = LifecycleManager.validateTransition(
       item.status,
       'awaiting_ngo_confirmation'
@@ -221,6 +260,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
 
   public confirmReceipt(
     donationId: string,
+    ngoId: string,
     ngoName: string,
     params: {
       receivedKg: number;
@@ -241,6 +281,18 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
     if (index === -1) return { success: false, error: 'Donation not found.' };
 
     const item = donations[index];
+
+    const roleCheck = LifecycleManager.validateRolePermission('confirm_receipt', 'ngo', {
+      reservingNgoId: item.reservedByNgoId,
+      actorId: ngoId,
+    });
+    if (!roleCheck.allowed) {
+      return { success: false, error: roleCheck.error };
+    }
+
+    if (item.reservedByNgoId && item.reservedByNgoId !== ngoId) {
+      return { success: false, error: 'Unauthorized: Only the organization that reserved this batch can sign off on receipt.' };
+    }
 
     if (item.status === 'delivered' || item.impactReceipt) {
       return {
@@ -299,6 +351,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
 
   public reportPickupFailure(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     reason: string,
     details?: string
@@ -308,6 +361,18 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
     if (index === -1) return { success: false, error: 'Task not found.' };
 
     const item = donations[index];
+    const roleCheck = LifecycleManager.validateRolePermission('confirm_pickup', 'volunteer', {
+      assignedCourierId: item.assignedVolunteerId,
+      actorId: volunteerId,
+    });
+    if (!roleCheck.allowed) {
+      return { success: false, error: roleCheck.error };
+    }
+
+    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+      return { success: false, error: 'Unauthorized: Only the assigned courier can report pickup failure for this task.' };
+    }
+
     const transitionCheck = LifecycleManager.validateTransition(item.status, 'pickup_failed');
     if (!transitionCheck.allowed) {
       return { success: false, error: transitionCheck.error || 'Cannot mark pickup failed from current state.' };
@@ -331,6 +396,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
 
   public cancelAssignment(
     donationId: string,
+    volunteerId: string,
     volunteerName: string,
     reason: string
   ): { success: boolean; error?: string } {
@@ -339,6 +405,18 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
     if (index === -1) return { success: false, error: 'Task not found.' };
 
     const item = donations[index];
+    const roleCheck = LifecycleManager.validateRolePermission('accept_task', 'volunteer', {
+      assignedCourierId: item.assignedVolunteerId,
+      actorId: volunteerId,
+    });
+    if (!roleCheck.allowed) {
+      return { success: false, error: roleCheck.error };
+    }
+
+    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+      return { success: false, error: 'Unauthorized: Only the assigned courier can release this task.' };
+    }
+
     const transitionCheck = LifecycleManager.validateTransition(item.status, 'volunteer_cancelled');
     if (!transitionCheck.allowed) {
       return {

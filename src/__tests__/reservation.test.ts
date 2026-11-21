@@ -179,7 +179,7 @@ describe('Reservation System & Atomic Locking', () => {
       reservationRepository.confirmReservation(testDonationId, testNgoA);
 
       // Then release
-      const releaseRes = reservationRepository.releaseReservation(testDonationId, testNgoA.name);
+      const releaseRes = reservationRepository.releaseReservation(testDonationId, testNgoA.id, testNgoA.name);
       expect(releaseRes.success).toBe(true);
 
       const released = donationRepository.findById(testDonationId);
@@ -193,7 +193,7 @@ describe('Reservation System & Atomic Locking', () => {
     it('rejects releasing a donation that is not in a releasable status (e.g. delivered)', () => {
       donationRepository.update(testDonationId, { status: 'delivered' });
 
-      const releaseRes = reservationRepository.releaseReservation(testDonationId, testNgoA.name);
+      const releaseRes = reservationRepository.releaseReservation(testDonationId, testNgoA.id, testNgoA.name);
       expect(releaseRes.success).toBe(false);
       expect(releaseRes.error).toContain('Terminal state reached');
     });
