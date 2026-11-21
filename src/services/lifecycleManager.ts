@@ -14,8 +14,8 @@ export const VALID_LIFECYCLE_TRANSITIONS: Record<DonationStatus, DonationStatus[
   reserved: ['assigned', 'available', 'cancelled_by_donor', 'cancelled_by_ngo'],
   assigned: ['arrived_at_donor', 'reserved', 'volunteer_cancelled', 'cancelled_by_donor'],
   arrived_at_donor: ['picked_up', 'pickup_failed', 'reserved', 'volunteer_cancelled'],
-  picked_up: ['in_transit', 'awaiting_ngo_confirmation', 'delivered', 'delivery_issue'],
-  in_transit: ['awaiting_ngo_confirmation', 'delivered', 'delivery_issue'],
+  picked_up: ['awaiting_ngo_confirmation', 'disputed'],
+  in_transit: ['awaiting_ngo_confirmation', 'disputed'],
   awaiting_ngo_confirmation: ['delivered', 'disputed', 'delivery_issue'],
   delivered: [], // Terminal verified state
   cancelled_by_donor: [], // Terminal cancelled state

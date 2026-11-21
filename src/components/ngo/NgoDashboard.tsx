@@ -947,7 +947,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
 
                     <div className="flex items-center gap-2 self-end sm:self-auto">
                       {/* Confirm Receipt Button */}
-                      {['awaiting_ngo_confirmation', 'picked_up', 'in_transit'].includes(claim.status) && (
+                      {claim.status === 'awaiting_ngo_confirmation' ? (
                         <button
                           onClick={() => handleOpenConfirmReceipt(claim)}
                           className="px-3.5 py-1.5 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded shadow-xs flex items-center gap-1.5 cursor-pointer"
@@ -955,7 +955,11 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                           <Check className="w-3.5 h-3.5" />
                           <span>Confirm Food Received</span>
                         </button>
-                      )}
+                      ) : ['picked_up', 'in_transit'].includes(claim.status) ? (
+                        <span className="text-[11px] text-[#50544C] italic bg-[#E2DFD2]/50 px-2.5 py-1 rounded">
+                          Courier in transit · Awaiting arrival
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </div>
