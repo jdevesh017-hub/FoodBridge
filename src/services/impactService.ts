@@ -7,14 +7,14 @@
 
 import { FoodCategory, ImpactStatistics, WasteIntelligenceMetric } from '../types';
 import { DEMO_BASELINE_STATS } from './seedData';
-import { storageAdapter } from './storageAdapter';
+import { donationRepository } from '../repositories';
 
 export class ImpactService {
   /**
    * Returns verified metrics for actual user-completed deliveries in the current session.
    */
   public getUserSessionVerifiedImpact(): ImpactStatistics {
-    const donations = storageAdapter.getDonations();
+    const donations = donationRepository.findAll();
     const verifiedUserDeliveries = donations.filter(
       (d) => d.origin === 'user_created' && d.status === 'delivered'
     );
@@ -77,7 +77,7 @@ export class ImpactService {
    * Computes surplus category breakdown for Food Waste Intelligence.
    */
   public getCategoryBreakdown(): WasteIntelligenceMetric[] {
-    const donations = storageAdapter.getDonations();
+    const donations = donationRepository.findAll();
     const categoryTotals: Record<FoodCategory, number> = {
       prepared_meals: 0,
       fresh_produce: 0,

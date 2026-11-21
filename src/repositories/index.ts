@@ -10,11 +10,15 @@ import { LocalStorageDonationRepository } from './localStorage/LocalStorageDonat
 import { LocalStorageUserRepository } from './localStorage/LocalStorageUserRepository';
 import { LocalStorageAuditEventRepository } from './localStorage/LocalStorageAuditEventRepository';
 import { LocalStorageDemandRepository } from './localStorage/LocalStorageDemandRepository';
+import { LocalStorageReservationRepository } from './localStorage/LocalStorageReservationRepository';
+import { LocalStorageDeliveryRepository } from './localStorage/LocalStorageDeliveryRepository';
 import {
   IDonationRepository,
   IUserRepository,
   IAuditEventRepository,
   IDemandRepository,
+  IReservationRepository,
+  IDeliveryRepository,
 } from './types';
 
 export * from './types';
@@ -23,4 +27,6 @@ export const donationRepository: IDonationRepository = new LocalStorageDonationR
 export const userRepository: IUserRepository = new LocalStorageUserRepository();
 export const auditEventRepository: IAuditEventRepository = new LocalStorageAuditEventRepository();
 export const demandRepository: IDemandRepository = new LocalStorageDemandRepository();
+export const reservationRepository: IReservationRepository = new LocalStorageReservationRepository();
+export const deliveryRepository: IDeliveryRepository = new LocalStorageDeliveryRepository();
 

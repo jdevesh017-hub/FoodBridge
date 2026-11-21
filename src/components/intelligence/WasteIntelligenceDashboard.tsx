@@ -8,6 +8,7 @@ import {
 } from '../../types';
 import { analyticsService, MEAL_PORTION_KG, CO2_PER_KG_FOOD } from '../../services/analyticsService';
 import { storageAdapter } from '../../services/storageAdapter';
+import { demandRepository } from '../../repositories';
 import {
   Sparkles,
   TrendingUp,
@@ -120,7 +121,7 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
       createdAt: new Date().toISOString(),
     };
 
-    storageAdapter.addDemandRequest(newDemand);
+    demandRepository.create(newDemand);
     setShowDemandModal(false);
     setDemandNotes('');
   };

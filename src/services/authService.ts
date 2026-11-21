@@ -6,6 +6,7 @@
 
 import { UserProfile, UserRole } from '../types';
 import { storageAdapter } from './storageAdapter';
+import { userRepository } from '../repositories';
 
 export class AuthService {
   public getCurrentSession(): { role: UserRole; profile: UserProfile | null; isDemoMode: boolean } {
@@ -47,7 +48,7 @@ export class AuthService {
       return { success: false, error: 'Donor establishment name is required.' };
     }
 
-    const users = storageAdapter.getUsers();
+    const users = userRepository.findAll();
     if (users.some((u) => u.email.toLowerCase() === params.email.trim().toLowerCase())) {
       return { success: false, error: 'An account with this email address already exists. Please sign in.' };
     }
@@ -87,8 +88,7 @@ export class AuthService {
       serviceRadiusKm: params.serviceRadiusKm || (params.role === 'volunteer' ? 10 : undefined),
     };
 
-    users.push(newUser);
-    storageAdapter.saveUsers(users);
+    userRepository.create(newUser);
     // Real registered user session: isDemoMode is false
     storageAdapter.setSession(params.role, newUser, false);
 
@@ -100,7 +100,7 @@ export class AuthService {
       return { success: false, error: 'Please enter your email address to sign in.' };
     }
 
-    const users = storageAdapter.getUsers();
+    const users = userRepository.findAll();
     const user = users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
 
     if (!user) {
@@ -120,7 +120,7 @@ export class AuthService {
       return null;
     }
 
-    const users = storageAdapter.getUsers();
+    const users = userRepository.findAll();
     let targetUser: UserProfile | undefined;
 
     if (role === 'donor') {

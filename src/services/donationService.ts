@@ -6,8 +6,7 @@
 
 import { DonationStatus, FoodCategory, FoodDonation, QuantityLedger, StorageCondition, DietaryTag, TemperatureUnit, PackagingCondition, AuditEvent } from '../types';
 import { evaluateFoodSafetyAssessment, evaluateFssaiFoodSafety, convertToCelsius } from './fssaiSafetyRules';
-import { storageAdapter } from './storageAdapter';
-import { donationRepository, auditEventRepository } from '../repositories';
+import { donationRepository, reservationRepository, auditEventRepository } from '../repositories';
 import { LifecycleManager } from './lifecycleManager';
 
 export class DonationService {
@@ -25,61 +24,19 @@ export class DonationService {
       return { success: false, error: 'Donation ID and NGO ID are required.' };
     }
 
-    const donations = storageAdapter.getDonations();
-    const target = donations.find((d) => d.id === donationId);
-
-    if (!target) {
-      return { success: false, error: 'Donation not found.' };
+    const res = reservationRepository.acquireLock(donationId, ngoId, leaseSeconds);
+    if (!res.success) {
+      return res;
     }
-
-    // Check if donation is already claimed
-    if (target.status !== 'available') {
-      const actorInfo = target.reservedByNgoName ? ` by ${target.reservedByNgoName}` : '';
-      return {
-        success: false,
-        error: `Donation is no longer available (already ${target.status.replace(/_/g, ' ')}${actorInfo}). Duplicate reservations are not permitted.`,
-      };
-    }
-
-    // Check for duplicate reservation: has this NGO already reserved this specific donation?
-    if (target.reservedByNgoId === ngoId) {
-      return {
-        success: false,
-        error: 'Your organization has already reserved this donation.',
-      };
-    }
-
-    // Check if an unexpired lease lock exists for another user
-    const now = new Date();
-    if (target.reservationLock) {
-      const expires = new Date(target.reservationLock.lockExpiresAt);
-      if (expires > now && target.reservationLock.leaseHolderId !== ngoId) {
-        const remainingSec = Math.ceil((expires.getTime() - now.getTime()) / 1000);
-        return {
-          success: false,
-          error: `Another community organization is currently reviewing this donation (lease hold expires in ${remainingSec}s). Please check back shortly.`,
-        };
-      }
-    }
-
-    // Grant temporary lease lock
-    const expiresAt = new Date(now.getTime() + leaseSeconds * 1000).toISOString();
-    target.reservationLock = {
-      lockedAt: now.toISOString(),
-      lockExpiresAt: expiresAt,
-      leaseHolderId: ngoId,
-    };
-
-    storageAdapter.saveDonations(donations);
 
     auditEventRepository.record({
-      entityId: target.id,
+      entityId: donationId,
       entityType: 'donation',
       actorId: ngoId,
       actorName: 'NGO Reservation Lock',
       actorRole: 'ngo',
       eventType: 'reservation_locked',
-      metadata: { leaseSeconds, expiresAt },
+      metadata: { leaseSeconds },
       note: `Atomic reservation lease held for ${leaseSeconds}s`,
     });
 
@@ -108,74 +65,13 @@ export class DonationService {
       return { success: false, error: 'Incomplete reservation parameters.' };
     }
 
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-
-    if (index === -1) {
-      return { success: false, error: 'Donation not found.' };
+    const res = reservationRepository.confirmReservation(donationId, ngo);
+    if (!res.success || !res.donation) {
+      return res;
     }
-
-    const item = donations[index];
-
-    // Verify reservation integrity
-    if (item.status !== 'available') {
-      return {
-        success: false,
-        error: `Cannot complete reservation: Donation status is '${item.status.replace(/_/g, ' ')}'${
-          item.reservedByNgoName ? ` (claimed by ${item.reservedByNgoName})` : ''
-        }.`,
-      };
-    }
-
-    // Verify lease lock holder if a lock is active
-    const now = new Date();
-    if (item.reservationLock) {
-      const lockExpiry = new Date(item.reservationLock.lockExpiresAt);
-      if (lockExpiry > now && item.reservationLock.leaseHolderId !== ngo.id) {
-        return {
-          success: false,
-          error: 'Reservation lock is currently held by another organization.',
-        };
-      }
-    }
-
-    // Check duplicate reservation within active claims: prevent claiming if already reserved
-    if (item.reservedByNgoId) {
-      return {
-        success: false,
-        error: 'This donation has already been claimed.',
-      };
-    }
-
-    // Verify valid lifecycle transition
-    const transitionCheck = LifecycleManager.validateTransition(item.status, 'reserved');
-    if (!transitionCheck.allowed) {
-      return { success: false, error: transitionCheck.error };
-    }
-
-    // Transition status to reserved
-    item.status = 'reserved';
-    item.reservedByNgoId = ngo.id;
-    item.reservedByNgoName = ngo.name;
-    item.ngoAddress = ngo.address;
-    item.ngoLat = ngo.lat;
-    item.ngoLng = ngo.lng;
-    item.reservationLock = undefined; // release lock
-
-    const nowIso = new Date().toISOString();
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'reserved',
-      timestamp: nowIso,
-      actor: ngo.name,
-      note: 'Donation reserved for community redistribution. Dispatched to volunteer courier board.',
-    });
-
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
 
     auditEventRepository.record({
-      entityId: item.id,
+      entityId: res.donation.id,
       entityType: 'donation',
       actorId: ngo.id,
       actorName: ngo.name,
@@ -185,46 +81,23 @@ export class DonationService {
       note: `Donation reserved by ${ngo.name}`,
     });
 
-    return { success: true, donation: item };
+    return res;
   }
 
   /**
    * NGO releases reservation back to public available pool.
    */
   public releaseReservation(donationId: string, ngoName: string, reason?: string): { success: boolean; error?: string } {
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
+    const item = donationRepository.findById(donationId);
+    const prevNgoId = item?.reservedByNgoId || 'unknown_ngo';
 
-    if (index === -1) return { success: false, error: 'Donation not found' };
-    const item = donations[index];
-
-    const transitionCheck = LifecycleManager.validateTransition(item.status, 'available');
-    if (!transitionCheck.allowed) {
-      return { success: false, error: transitionCheck.error || `Cannot release donation with status ${item.status}` };
+    const res = reservationRepository.releaseReservation(donationId, ngoName);
+    if (!res.success) {
+      return res;
     }
 
-    const prevNgoId = item.reservedByNgoId || 'unknown_ngo';
-    item.status = 'available';
-    item.reservedByNgoId = undefined;
-    item.reservedByNgoName = undefined;
-    item.assignedVolunteerId = undefined;
-    item.assignedVolunteerName = undefined;
-    item.volunteerPhone = undefined;
-
-    const nowIso = new Date().toISOString();
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'available',
-      timestamp: nowIso,
-      actor: ngoName,
-      note: `Reservation cancelled by NGO. ${reason ? `Reason: ${reason}` : 'Returned to available pool.'}`,
-    });
-
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
-
     auditEventRepository.record({
-      entityId: item.id,
+      entityId: donationId,
       entityType: 'donation',
       actorId: prevNgoId,
       actorName: ngoName,
@@ -407,9 +280,7 @@ export class DonationService {
       photoUrl: params.photoUrl || '/src/assets/images/hero_food_redistribution_1794331332502.jpg',
     };
 
-    const donations = storageAdapter.getDonations();
-    donations.unshift(newDonation);
-    storageAdapter.saveDonations(donations);
+    donationRepository.create(newDonation);
 
     auditEventRepository.record({
       entityId: newDonation.id,
@@ -459,7 +330,7 @@ export class DonationService {
       specialHandlingNotes?: string;
     }
   ): { success: boolean; donation?: FoodDonation; error?: string } {
-    const donations = storageAdapter.getDonations();
+    const donations = donationRepository.findAll();
     const index = donations.findIndex((d) => d.id === donationId);
 
     if (index === -1) {
@@ -564,7 +435,7 @@ export class DonationService {
     });
 
     donations[index] = item;
-    storageAdapter.saveDonations(donations);
+    donationRepository.saveAll(donations);
 
     auditEventRepository.record({
       entityId: item.id,
@@ -599,7 +470,7 @@ export class DonationService {
       return { success: false, error: roleCheck.error };
     }
 
-    const donations = storageAdapter.getDonations();
+    const donations = donationRepository.findAll();
     const index = donations.findIndex((d) => d.id === donationId);
 
     if (index === -1) {
@@ -640,7 +511,7 @@ export class DonationService {
     });
 
     donations[index] = item;
-    storageAdapter.saveDonations(donations);
+    donationRepository.saveAll(donations);
 
     auditEventRepository.record({
       entityId: item.id,
@@ -657,19 +528,19 @@ export class DonationService {
   }
 
   public getAllDonations(): FoodDonation[] {
-    return storageAdapter.getDonations();
+    return donationRepository.findAll();
   }
 
   public getDonationsByDonor(donorId: string): FoodDonation[] {
-    return storageAdapter.getDonations().filter((d) => d.donorId === donorId);
+    return donationRepository.filter((d) => d.donorId === donorId);
   }
 
   public getAvailableDonations(): FoodDonation[] {
-    return storageAdapter.getDonations().filter((d) => d.status === 'available');
+    return donationRepository.filter((d) => d.status === 'available');
   }
 
   public getDonationById(id: string): FoodDonation | undefined {
-    return storageAdapter.getDonations().find((d) => d.id === id);
+    return donationRepository.findById(id) || undefined;
   }
 
   public getAuditHistory(donationId: string): AuditEvent[] {

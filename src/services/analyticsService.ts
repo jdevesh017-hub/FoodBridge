@@ -28,7 +28,7 @@ import {
   WastePreventionRecommendation,
   RoleAnalyticsSummary,
 } from '../types';
-import { storageAdapter } from './storageAdapter';
+import { donationRepository, demandRepository } from '../repositories';
 
 export const MEAL_PORTION_KG = 0.35; // Standard 350g portion per hot/nutritional meal
 export const CO2_PER_KG_FOOD = 2.5;  // Documented FAO / WRAP life-cycle average (2.5 kg CO2e / kg food saved)
@@ -107,7 +107,7 @@ export class AnalyticsService {
    * Calculates Food Waste Overview KPIs.
    */
   public getFoodWasteKpis(options?: Partial<AnalyticsFilterOptions>): FoodWasteKpis {
-    const rawDonations = storageAdapter.getDonations();
+    const rawDonations = donationRepository.findAll();
     const filtered = this.filterDonations(rawDonations, options);
 
     if (filtered.length === 0) {
@@ -229,7 +229,7 @@ export class AnalyticsService {
   public getCategoryAnalysis(
     options?: Partial<AnalyticsFilterOptions>
   ): CategorySurplusBreakdown[] {
-    const rawDonations = storageAdapter.getDonations();
+    const rawDonations = donationRepository.findAll();
     const filtered = this.filterDonations(rawDonations, options);
 
     const categories: FoodCategory[] = [
@@ -302,7 +302,7 @@ export class AnalyticsService {
     days = 10,
     options?: Partial<AnalyticsFilterOptions>
   ): DailyTrendPoint[] {
-    const rawDonations = storageAdapter.getDonations();
+    const rawDonations = donationRepository.findAll();
     const filtered = this.filterDonations(rawDonations, options);
 
     const result: DailyTrendPoint[] = [];
@@ -366,7 +366,7 @@ export class AnalyticsService {
   public getWeekdayDistribution(
     options?: Partial<AnalyticsFilterOptions>
   ): WeekdayDistributionPoint[] {
-    const rawDonations = storageAdapter.getDonations();
+    const rawDonations = donationRepository.findAll();
     const filtered = this.filterDonations(rawDonations, options);
 
     const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -410,8 +410,8 @@ export class AnalyticsService {
     totalUnfulfilledKg: number;
     overallCoveragePct: number;
   } {
-    const rawDonations = storageAdapter.getDonations();
-    const rawDemands = storageAdapter.getDemandRequests();
+    const rawDonations = donationRepository.findAll();
+    const rawDemands = demandRepository.findAll();
 
     const filteredDonations = this.filterDonations(rawDonations, options);
 
@@ -513,7 +513,7 @@ export class AnalyticsService {
   public getRecurringPatterns(
     options?: Partial<AnalyticsFilterOptions>
   ): RecurringPatternInsight[] {
-    const rawDonations = storageAdapter.getDonations();
+    const rawDonations = donationRepository.findAll();
     const filtered = this.filterDonations(rawDonations, options);
 
     const insights: RecurringPatternInsight[] = [];
@@ -582,7 +582,7 @@ export class AnalyticsService {
   public getBetterDecisionRecommendations(
     options?: Partial<AnalyticsFilterOptions>
   ): WastePreventionRecommendation[] {
-    const rawDonations = storageAdapter.getDonations();
+    const rawDonations = donationRepository.findAll();
     const filtered = this.filterDonations(rawDonations, options);
 
     // Rule 1: Insufficient data guard
@@ -680,7 +680,7 @@ export class AnalyticsService {
     role: UserRole,
     userProfile: UserProfile | null
   ): RoleAnalyticsSummary {
-    const rawDonations = storageAdapter.getDonations();
+    const rawDonations = donationRepository.findAll();
 
     if (role === 'donor') {
       const donorId = userProfile?.id;

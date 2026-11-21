@@ -6,8 +6,7 @@
  */
 
 import { DonationStatus, FoodDonation, VolunteerTask } from '../types';
-import { storageAdapter } from './storageAdapter';
-import { auditEventRepository } from '../repositories';
+import { deliveryRepository, donationRepository, auditEventRepository } from '../repositories';
 import { LifecycleManager } from './lifecycleManager';
 
 // Haversine distance calculator in kilometers
@@ -30,43 +29,21 @@ export class VolunteerService {
    * List donations that are reserved and waiting for volunteer courier assignment.
    */
   public getAvailableTasks(volunteerLat = 19.0720, volunteerLng = 72.8710): (FoodDonation & { distanceKm: number })[] {
-    const donations = storageAdapter.getDonations();
-    return donations
-      .filter((d) => d.status === 'reserved' || d.status === 'volunteer_cancelled')
-      .map((d) => {
-        const dist = calculateDistanceKm(volunteerLat, volunteerLng, d.donorLat, d.donorLng);
-        return { ...d, distanceKm: dist };
-      })
-      .sort((a, b) => {
-        // Prioritize urgent reassigned tasks first, then by nearest distance
-        if (a.status === 'volunteer_cancelled' && b.status !== 'volunteer_cancelled') return -1;
-        if (b.status === 'volunteer_cancelled' && a.status !== 'volunteer_cancelled') return 1;
-        return a.distanceKm - b.distanceKm;
-      });
+    return deliveryRepository.getAvailableTasks({ lat: volunteerLat, lng: volunteerLng }) as (FoodDonation & { distanceKm: number })[];
   }
 
   /**
    * Get all active tasks currently assigned to a volunteer.
    */
   public getMyAssignments(volunteerId: string): FoodDonation[] {
-    const donations = storageAdapter.getDonations();
-    return donations.filter(
-      (d) =>
-        d.assignedVolunteerId === volunteerId &&
-        ['assigned', 'arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(d.status)
-    );
+    return deliveryRepository.getMyActiveDeliveries(volunteerId);
   }
 
   /**
    * Get completed delivery history for a volunteer.
    */
   public getMyDeliveryHistory(volunteerId: string): FoodDonation[] {
-    const donations = storageAdapter.getDonations();
-    return donations.filter(
-      (d) =>
-        d.assignedVolunteerId === volunteerId &&
-        (d.status === 'delivered' || d.status === 'pickup_failed' || d.status === 'delivery_issue' || d.status === 'disputed')
-    );
+    return deliveryRepository.getMyDeliveryHistory(volunteerId);
   }
 
   /**
@@ -81,44 +58,13 @@ export class VolunteerService {
       return { success: false, error: roleCheck.error };
     }
 
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-
-    if (index === -1) return { success: false, error: 'Task not found.' };
-    const item = donations[index];
-
-    if (item.status !== 'reserved' && item.status !== 'volunteer_cancelled') {
-      return { success: false, error: `Task is not available for assignment (status: ${item.status.replace(/_/g, ' ')}).` };
+    const res = deliveryRepository.acceptTask(donationId, volunteer);
+    if (!res.success || !res.donation) {
+      return res;
     }
-
-    if (item.assignedVolunteerId) {
-      return { success: false, error: 'Task is already assigned to a delivery courier.' };
-    }
-
-    const transitionCheck = LifecycleManager.validateTransition(item.status, 'assigned');
-    if (!transitionCheck.allowed) {
-      return { success: false, error: transitionCheck.error };
-    }
-
-    item.status = 'assigned';
-    item.assignedVolunteerId = volunteer.id;
-    item.assignedVolunteerName = volunteer.name;
-    item.volunteerPhone = volunteer.phone;
-
-    const nowIso = new Date().toISOString();
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'assigned',
-      timestamp: nowIso,
-      actor: volunteer.name,
-      note: 'Volunteer courier accepted assignment. Proceeding to donor collection location.',
-    });
-
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
 
     auditEventRepository.record({
-      entityId: item.id,
+      entityId: res.donation.id,
       entityType: 'donation',
       actorId: volunteer.id,
       actorName: volunteer.name,
@@ -128,40 +74,23 @@ export class VolunteerService {
       note: `Courier task accepted by ${volunteer.name}`,
     });
 
-    return { success: true, donation: item };
+    return res;
   }
 
   /**
    * Step 2: Volunteer confirms physical arrival at donor kitchen.
    */
   public confirmArrivalAtDonor(donationId: string, volunteerName: string): { success: boolean; error?: string } {
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-    if (index === -1) return { success: false, error: 'Task not found.' };
-
-    const item = donations[index];
-    const transitionCheck = LifecycleManager.validateTransition(item.status, 'arrived_at_donor');
-    if (!transitionCheck.allowed) {
-      return { success: false, error: transitionCheck.error };
+    const res = deliveryRepository.confirmArrivalAtDonor(donationId, volunteerName);
+    if (!res.success) {
+      return res;
     }
 
-    item.status = 'arrived_at_donor';
-    const nowIso = new Date().toISOString();
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'arrived_at_donor',
-      timestamp: nowIso,
-      actor: volunteerName,
-      note: 'Volunteer arrived on site at donor premises. Commencing temperature audit and item handover.',
-    });
-
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
-
+    const item = donationRepository.findById(donationId);
     auditEventRepository.record({
-      entityId: item.id,
+      entityId: donationId,
       entityType: 'donation',
-      actorId: item.assignedVolunteerId || 'unknown_volunteer',
+      actorId: item?.assignedVolunteerId || 'unknown_volunteer',
       actorName: volunteerName,
       actorRole: 'volunteer',
       eventType: 'volunteer_arrived',
@@ -180,44 +109,20 @@ export class VolunteerService {
     volunteerName: string,
     confirmedKg?: number
   ): { success: boolean; error?: string } {
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-    if (index === -1) return { success: false, error: 'Task not found.' };
-
-    const item = donations[index];
-    const transitionCheck = LifecycleManager.validateTransition(item.status, 'picked_up');
-    if (!transitionCheck.allowed) {
-      return { success: false, error: transitionCheck.error };
+    const res = deliveryRepository.confirmPickup(donationId, volunteerName, confirmedKg || 0);
+    if (!res.success || !res.donation) {
+      return { success: false, error: res.error };
     }
-
-    item.status = 'picked_up';
-    if (confirmedKg !== undefined && confirmedKg > 0) {
-      item.quantity.pickupConfirmedKg = confirmedKg;
-    } else {
-      item.quantity.pickupConfirmedKg = item.quantity.measuredKg || item.quantity.donorEstimatedKg;
-    }
-
-    const nowIso = new Date().toISOString();
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'picked_up',
-      timestamp: nowIso,
-      actor: volunteerName,
-      note: `Food safely loaded in thermal transport carrier. Verified pickup weight: ${item.quantity.pickupConfirmedKg} kg. Starting transit to NGO.`,
-    });
-
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
 
     auditEventRepository.record({
-      entityId: item.id,
+      entityId: res.donation.id,
       entityType: 'donation',
-      actorId: item.assignedVolunteerId || 'unknown_volunteer',
+      actorId: res.donation.assignedVolunteerId || 'unknown_volunteer',
       actorName: volunteerName,
       actorRole: 'volunteer',
       eventType: 'pickup_confirmed',
-      metadata: { pickupConfirmedKg: item.quantity.pickupConfirmedKg },
-      note: `Food pickup confirmed: ${item.quantity.pickupConfirmedKg} kg loaded.`,
+      metadata: { pickupConfirmedKg: res.donation.quantity.pickupConfirmedKg },
+      note: `Food pickup confirmed: ${res.donation.quantity.pickupConfirmedKg} kg loaded.`,
     });
 
     return { success: true };
@@ -232,29 +137,7 @@ export class VolunteerService {
     volunteerName: string,
     notes?: string
   ): { success: boolean; donation?: FoodDonation; error?: string } {
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-    if (index === -1) return { success: false, error: 'Task not found.' };
-
-    const item = donations[index];
-    const transitionCheck = LifecycleManager.validateTransition(item.status, 'awaiting_ngo_confirmation');
-    if (!transitionCheck.allowed) {
-      return { success: false, error: transitionCheck.error || `Cannot mark arrived at NGO from status ${item.status}.` };
-    }
-
-    item.status = 'awaiting_ngo_confirmation';
-    const nowIso = new Date().toISOString();
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'awaiting_ngo_confirmation',
-      timestamp: nowIso,
-      actor: volunteerName,
-      note: `Volunteer arrived at destination (${item.reservedByNgoName || 'NGO'}). Food handed over; awaiting NGO supervisor inspection and sign-off. ${notes || ''}`,
-    });
-
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
-    return { success: true, donation: item };
+    return deliveryRepository.confirmArrivalAtNgo(donationId, volunteerName, notes);
   }
 
   /**
@@ -270,82 +153,28 @@ export class VolunteerService {
       notes?: string;
     }
   ): { success: boolean; donation?: FoodDonation; error?: string } {
-    if (!donationId) return { success: false, error: 'Donation ID is required.' };
-    if (!params.receivedKg || params.receivedKg <= 0) {
-      return { success: false, error: 'Please enter a valid received quantity in kilograms.' };
+    const res = deliveryRepository.confirmReceipt(donationId, ngoName, params);
+    if (!res.success || !res.donation) {
+      return res;
     }
-    if (!params.receivingSupervisorName.trim()) {
-      return { success: false, error: 'Receiving staff / supervisor name is required.' };
-    }
-
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-    if (index === -1) return { success: false, error: 'Donation not found.' };
-
-    const item = donations[index];
-
-    if (item.status === 'delivered' || item.impactReceipt) {
-      return { success: false, error: 'Donation has already been delivered and impact receipt generated. Duplicate confirmations are rejected.' };
-    }
-
-    const transitionCheck = LifecycleManager.validateTransition(item.status, 'delivered');
-    if (!transitionCheck.allowed) {
-      return { success: false, error: transitionCheck.error || `Cannot confirm receipt for donation with status '${item.status}'.` };
-    }
-
-    const pickupWeight = item.quantity.pickupConfirmedKg || item.quantity.donorEstimatedKg;
-    const discrepancyKg = Math.round((params.receivedKg - pickupWeight) * 10) / 10;
-
-    item.status = 'delivered';
-    item.quantity.deliveredKg = params.receivedKg;
-    item.quantity.discrepancyKg = discrepancyKg;
-    const mealsProvided = Math.round(params.receivedKg / 0.35);
-
-    const nowIso = new Date().toISOString();
-    item.impactReceipt = {
-      receiptId: `rcpt_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-      donationId: item.id,
-      deliveredAt: nowIso,
-      donorName: item.donorName,
-      ngoName: item.reservedByNgoName || ngoName,
-      volunteerName: item.assignedVolunteerName || 'Volunteer Courier',
-      foodName: item.foodName,
-      donorEstimatedKg: item.quantity.donorEstimatedKg,
-      pickupConfirmedKg: item.quantity.pickupConfirmedKg || item.quantity.donorEstimatedKg,
-      deliveredKg: params.receivedKg,
-      mealsProvided,
-      co2PreventedKg: Math.round(params.receivedKg * 2.5 * 10) / 10,
-      fssaiRuleCitation: item.safety.fssaiRuleCitation,
-    };
-
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'delivered',
-      timestamp: nowIso,
-      actor: `${ngoName} (${params.receivingSupervisorName})`,
-      note: `Food safely received and verified. Net weight accepted: ${params.receivedKg} kg (~${mealsProvided} meals). Discrepancy: ${discrepancyKg} kg. ${params.notes || 'Condition verified in good order.'}`,
-    });
-
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
 
     auditEventRepository.record({
-      entityId: item.id,
+      entityId: res.donation.id,
       entityType: 'donation',
-      actorId: item.reservedByNgoId || 'unknown_ngo',
+      actorId: res.donation.reservedByNgoId || 'unknown_ngo',
       actorName: `${ngoName} (${params.receivingSupervisorName})`,
       actorRole: 'ngo',
       eventType: 'delivery_confirmed',
       metadata: {
         receivedKg: params.receivedKg,
-        mealsProvided,
-        discrepancyKg,
-        receiptId: item.impactReceipt.receiptId,
+        mealsProvided: res.donation.impactReceipt?.mealsProvided,
+        discrepancyKg: res.donation.quantity.discrepancyKg,
+        receiptId: res.donation.impactReceipt?.receiptId,
       },
-      note: `Delivery confirmed by NGO: ${params.receivedKg} kg verified. Discrepancy: ${discrepancyKg} kg.`,
+      note: `Delivery confirmed by NGO: ${params.receivedKg} kg verified. Discrepancy: ${res.donation.quantity.discrepancyKg} kg.`,
     });
 
-    return { success: true, donation: item };
+    return res;
   }
 
   /**
@@ -361,14 +190,8 @@ export class VolunteerService {
       actualWeightReceivedKg?: number;
     }
   ): { success: boolean; error?: string } {
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-    if (index === -1) return { success: false, error: 'Donation not found.' };
-
-    const item = donations[index];
-    item.status = 'disputed';
     const nowIso = new Date().toISOString();
-    item.discrepancyReport = {
+    const discrepancyReport = {
       reportedAt: nowIso,
       reportedByRole: reporterRole,
       reporterName,
@@ -377,21 +200,16 @@ export class VolunteerService {
       actualWeightReceivedKg: issue.actualWeightReceivedKg,
     };
 
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'disputed',
-      timestamp: nowIso,
-      actor: reporterName,
-      note: `Delivery issue flagged [${issue.issueType.replace(/_/g, ' ')}]: ${issue.details}`,
-    });
+    const res = deliveryRepository.reportDiscrepancy(donationId, discrepancyReport);
+    if (!res.success) {
+      return res;
+    }
 
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
-
+    const item = donationRepository.findById(donationId);
     auditEventRepository.record({
-      entityId: item.id,
+      entityId: donationId,
       entityType: 'donation',
-      actorId: reporterRole === 'ngo' ? (item.reservedByNgoId || 'ngo') : (item.assignedVolunteerId || 'volunteer'),
+      actorId: reporterRole === 'ngo' ? (item?.reservedByNgoId || 'ngo') : (item?.assignedVolunteerId || 'volunteer'),
       actorName: reporterName,
       actorRole: reporterRole,
       eventType: 'delivery_issue_reported',
@@ -410,24 +228,24 @@ export class VolunteerService {
     volunteerName: string,
     reason: string
   ): { success: boolean; error?: string } {
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-    if (index === -1) return { success: false, error: 'Donation not found.' };
+    const item = donationRepository.findById(donationId);
+    if (!item) return { success: false, error: 'Donation not found.' };
 
-    const item = donations[index];
-    item.status = 'delivery_issue';
     const nowIso = new Date().toISOString();
-    item.updatedAt = nowIso;
-    item.timeline.push({
+    const timeline = item.timeline || [];
+    timeline.push({
       status: 'delivery_issue',
       timestamp: nowIso,
       actor: volunteerName,
       note: `Delivery issue reported: ${reason}`,
     });
 
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
-    return { success: true };
+    const updated = donationRepository.update(donationId, {
+      status: 'delivery_issue',
+      timeline,
+    });
+
+    return updated ? { success: true } : { success: false, error: 'Failed to update donation.' };
   }
 
   /**
@@ -439,36 +257,16 @@ export class VolunteerService {
     volunteerName: string,
     reason: string
   ): { success: boolean; error?: string } {
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-    if (index === -1) return { success: false, error: 'Task not found.' };
+    const itemBefore = donationRepository.findById(donationId);
+    const prevVolunteerId = itemBefore?.assignedVolunteerId || 'unknown_volunteer';
 
-    const item = donations[index];
-    const transitionCheck = LifecycleManager.validateTransition(item.status, 'volunteer_cancelled');
-    if (!transitionCheck.allowed) {
-      return { success: false, error: transitionCheck.error || 'Cannot cancel after food has been picked up from donor.' };
+    const res = deliveryRepository.cancelAssignment(donationId, volunteerName, reason);
+    if (!res.success) {
+      return res;
     }
 
-    const prevVolunteerId = item.assignedVolunteerId || 'unknown_volunteer';
-    item.status = 'volunteer_cancelled'; // Flagged for urgent reassignment
-    item.assignedVolunteerId = undefined;
-    item.assignedVolunteerName = undefined;
-    item.volunteerPhone = undefined;
-
-    const nowIso = new Date().toISOString();
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'volunteer_cancelled',
-      timestamp: nowIso,
-      actor: volunteerName,
-      note: `Volunteer released assignment: "${reason}". Task reopened with urgent reassignment priority.`,
-    });
-
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
-
     auditEventRepository.record({
-      entityId: item.id,
+      entityId: donationId,
       entityType: 'donation',
       actorId: prevVolunteerId,
       actorName: volunteerName,
@@ -490,34 +288,16 @@ export class VolunteerService {
     reason: string,
     details?: string
   ): { success: boolean; error?: string } {
-    const donations = storageAdapter.getDonations();
-    const index = donations.findIndex((d) => d.id === donationId);
-    if (index === -1) return { success: false, error: 'Task not found.' };
-
-    const item = donations[index];
-    const transitionCheck = LifecycleManager.validateTransition(item.status, 'pickup_failed');
-    if (!transitionCheck.allowed) {
-      return { success: false, error: transitionCheck.error };
+    const res = deliveryRepository.reportPickupFailure(donationId, volunteerName, reason, details);
+    if (!res.success) {
+      return res;
     }
 
-    item.status = 'pickup_failed';
-
-    const nowIso = new Date().toISOString();
-    item.updatedAt = nowIso;
-    item.timeline.push({
-      status: 'pickup_failed',
-      timestamp: nowIso,
-      actor: volunteerName,
-      note: `Pickup incident reported: [${reason}] ${details || ''}`,
-    });
-
-    donations[index] = item;
-    storageAdapter.saveDonations(donations);
-
+    const item = donationRepository.findById(donationId);
     auditEventRepository.record({
-      entityId: item.id,
+      entityId: donationId,
       entityType: 'donation',
-      actorId: item.assignedVolunteerId || 'unknown_volunteer',
+      actorId: item?.assignedVolunteerId || 'unknown_volunteer',
       actorName: volunteerName,
       actorRole: 'volunteer',
       eventType: 'pickup_failed',

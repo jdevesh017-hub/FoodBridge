@@ -73,8 +73,9 @@ export interface IDeliveryRepository {
   ): { success: boolean; donation?: FoodDonation; error?: string };
   confirmArrivalAtNgo(
     donationId: string,
-    volunteerName: string
-  ): { success: boolean; error?: string };
+    volunteerName: string,
+    notes?: string
+  ): { success: boolean; donation?: FoodDonation; error?: string };
   confirmReceipt(
     donationId: string,
     ngoName: string,
@@ -87,7 +88,8 @@ export interface IDeliveryRepository {
   reportPickupFailure(
     donationId: string,
     volunteerName: string,
-    reason: string
+    reason: string,
+    details?: string
   ): { success: boolean; error?: string };
   cancelAssignment(
     donationId: string,
