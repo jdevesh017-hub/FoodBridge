@@ -52,12 +52,12 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
   const [activeSubFilter, setActiveSubFilter] = useState<'all' | 'available' | 'reserved' | 'in_transit'>('all');
   const [historySubFilter, setHistorySubFilter] = useState<'all' | 'delivered' | 'cancelled'>('all');
 
-  const donorId = user?.id || 'donor_grand_meridian';
-  const donorName = user?.organizationName || user?.fullName || 'Grand Meridian Banquet & Hotel';
-  const donorAddress = user?.address || '14 Royal Palm Way, Central District';
-  const donorPhone = user?.phone || '+91 98201 54321';
+  const donorId = user?.role === 'donor' && user?.id ? user.id : '';
+  const donorName = user?.organizationName || user?.fullName || '';
+  const donorAddress = user?.address || '';
+  const donorPhone = user?.phone || '';
 
-  const myDonations = donationService.getDonationsByDonor(donorId);
+  const myDonations = donorId ? donationService.getDonationsByDonor(donorId) : [];
 
   // Sync when initialTab prop changes from external router (Navbar, etc.)
   React.useEffect(() => {
@@ -309,6 +309,28 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
     return true;
   });
 
+  if (!user || user.role !== 'donor') {
+    return (
+      <div className="max-w-md mx-auto my-16 px-4">
+        <div className="bg-white rounded-xl border border-[#E2DFD2] p-8 text-center space-y-4 shadow-xs">
+          <div className="w-12 h-12 rounded-full bg-[#E8EDE2] text-[#183D2B] flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6 text-[#183D2B]" />
+          </div>
+          <h2 className="font-editorial text-2xl font-bold text-[#183D2B]">Sign In Required</h2>
+          <p className="text-xs text-[#50544C] leading-relaxed">
+            Please sign in with a registered donor account or select the <strong>Donor Demo Persona</strong> from the top banner to access the Donor Portal.
+          </p>
+          <button
+            onClick={() => onNavigate('landing')}
+            className="w-full py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer"
+          >
+            Return to Public Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Editorial Header with Facility Details & Portal Tabs */}
@@ -318,7 +340,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
             Donor Operations · Commercial Kitchen
           </span>
           <h1 className="font-editorial text-3xl sm:text-4xl font-bold text-[#183D2B] mt-1">
-            Good day, {user?.fullName || 'Chef Marcus'}.
+            Good day, {user?.fullName || donorName}.
           </h1>
           <p className="text-sm text-[#50544C] mt-1">
             Active facility: <span className="font-medium text-[#252923]">{donorName}</span> ({donorAddress})

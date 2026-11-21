@@ -51,9 +51,9 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   const [arrivalNotesInput, setArrivalNotesInput] = useState<string>('Handed over thermal boxes to shelter staff');
   const [receiptDonation, setReceiptDonation] = useState<FoodDonation | null>(null);
 
-  const volunteerId = user?.id || 'volunteer_alex';
-  const volunteerName = user?.fullName || 'Alex Rivera';
-  const volunteerPhone = user?.phone || '+91 98440 23901';
+  const volunteerId = user?.role === 'volunteer' && user?.id ? user.id : '';
+  const volunteerName = user?.fullName || '';
+  const volunteerPhone = user?.phone || '';
   const volunteerLat = user?.lat || 19.0720;
   const volunteerLng = user?.lng || 72.8710;
 
@@ -87,8 +87,8 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   }, [showPickupModal, showArrivalAtNgoModal, showCancelModal, showFailedModal, receiptDonation]);
 
   const availableTasks = volunteerService.getAvailableTasks(volunteerLat, volunteerLng);
-  const myAssignments = volunteerService.getMyAssignments(volunteerId);
-  const deliveryHistory = volunteerService.getMyDeliveryHistory(volunteerId);
+  const myAssignments = volunteerId ? volunteerService.getMyAssignments(volunteerId) : [];
+  const deliveryHistory = volunteerId ? volunteerService.getMyDeliveryHistory(volunteerId) : [];
 
   // Active assignment being processed
   const activeRun = myAssignments[0] || null;
@@ -190,6 +190,28 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
       onShowToast(res.error || 'Error logging failed pickup.', 'error');
     }
   };
+
+  if (!user || user.role !== 'volunteer') {
+    return (
+      <div className="max-w-md mx-auto my-16 px-4">
+        <div className="bg-white rounded-xl border border-[#E2DFD2] p-8 text-center space-y-4 shadow-xs">
+          <div className="w-12 h-12 rounded-full bg-[#E8EDE2] text-[#183D2B] flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6 text-[#183D2B]" />
+          </div>
+          <h2 className="font-editorial text-2xl font-bold text-[#183D2B]">Sign In Required</h2>
+          <p className="text-xs text-[#50544C] leading-relaxed">
+            Please sign in with a registered volunteer / courier account or select the <strong>Volunteer Demo Persona</strong> from the top banner to access the Dispatch Portal.
+          </p>
+          <button
+            onClick={() => onNavigate('landing')}
+            className="w-full py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer"
+          >
+            Return to Public Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">

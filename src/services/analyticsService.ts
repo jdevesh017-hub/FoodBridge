@@ -683,7 +683,21 @@ export class AnalyticsService {
     const rawDonations = storageAdapter.getDonations();
 
     if (role === 'donor') {
-      const donorId = userProfile?.id || 'donor_grand_meridian';
+      const donorId = userProfile?.id;
+      if (!donorId) {
+        return {
+          role: 'donor',
+          donorStats: {
+            ownSurplusKg: 0,
+            ownDeliveredKg: 0,
+            ownRecoveryRatePct: 0,
+            topCategory: null,
+            activeSurplusListingsCount: 0,
+            completedDeliveriesCount: 0,
+            recommendations: [],
+          },
+        };
+      }
       const myDonations = rawDonations.filter((d) => d.donorId === donorId);
       const kpis = this.getFoodWasteKpis({ donorId });
       const categories = this.getCategoryAnalysis({ donorId });
@@ -707,7 +721,19 @@ export class AnalyticsService {
     }
 
     if (role === 'ngo') {
-      const ngoId = userProfile?.id || 'ngo_hope_kitchen';
+      const ngoId = userProfile?.id;
+      if (!ngoId) {
+        return {
+          role: 'ngo',
+          ngoStats: {
+            totalReceivedKg: 0,
+            mealsProvided: 0,
+            activeReservationsCount: 0,
+            demandFulfillmentPct: 0,
+            unfulfilledKg: 0,
+          },
+        };
+      }
       const myClaims = rawDonations.filter((d) => d.reservedByNgoId === ngoId);
       const deliveredClaims = myClaims.filter((d) => d.status === 'delivered');
 
@@ -737,7 +763,19 @@ export class AnalyticsService {
     }
 
     if (role === 'volunteer') {
-      const volunteerId = userProfile?.id || 'volunteer_priya';
+      const volunteerId = userProfile?.id;
+      if (!volunteerId) {
+        return {
+          role: 'volunteer',
+          volunteerStats: {
+            completedDeliveriesCount: 0,
+            totalDeliveredKg: 0,
+            failedPickupsCount: 0,
+            deliverySuccessRatePct: 100,
+            avgDeliveryDurationMinutes: null,
+          },
+        };
+      }
       const myTasks = rawDonations.filter((d) => d.assignedVolunteerId === volunteerId);
       const completed = myTasks.filter((d) => d.status === 'delivered');
       const failed = myTasks.filter((d) => d.status === 'pickup_failed');

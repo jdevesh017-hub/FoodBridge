@@ -60,8 +60,8 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
   // NGO Confirm Receipt Modal State
   const [confirmReceiptDonation, setConfirmReceiptDonation] = useState<FoodDonation | null>(null);
   const [receivedKgInput, setReceivedKgInput] = useState<string>('');
-  const [receivingSupervisorInput, setReceivingSupervisorInput] = useState<string>('Sister Teresa Roy');
-  const [receiptNotesInput, setReceiptNotesInput] = useState<string>('Inspected and served in community kitchen');
+  const [receivingSupervisorInput, setReceivingSupervisorInput] = useState<string>('');
+  const [receiptNotesInput, setReceiptNotesInput] = useState<string>('');
 
   // Discrepancy Reporting Modal State
   const [discrepancyDonation, setDiscrepancyDonation] = useState<FoodDonation | null>(null);
@@ -69,9 +69,9 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
   const [issueDetailsInput, setIssueDetailsInput] = useState<string>('');
   const [issueWeightInput, setIssueWeightInput] = useState<string>('');
 
-  const ngoId = user?.id || 'ngo_hope_kitchen';
-  const ngoName = user?.organizationName || user?.fullName || 'Hope Community Kitchen & Shelter';
-  const ngoAddress = user?.address || '102 Compassion Lane, West Haven';
+  const ngoId = user?.role === 'ngo' && user?.id ? user.id : '';
+  const ngoName = user?.organizationName || user?.fullName || '';
+  const ngoAddress = user?.address || '';
   const ngoLat = user?.lat || 19.0620;
   const ngoLng = user?.lng || 72.8550;
 
@@ -130,25 +130,23 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
   });
 
   // 1. My Reserved Donations (claimed by NGO, awaiting volunteer courier pickup)
-  const myReservations = allDonations.filter(
-    (d) =>
-      (d.reservedByNgoId === ngoId || (user?.role === 'public' && d.reservedByNgoId === 'ngo_hope_kitchen')) &&
-      d.status === 'reserved'
-  );
+  const myReservations = ngoId
+    ? allDonations.filter((d) => d.reservedByNgoId === ngoId && d.status === 'reserved')
+    : [];
 
   // 2. My Active Deliveries (courier assigned, en route, or arrived at NGO facility)
-  const myDeliveries = allDonations.filter(
-    (d) =>
-      (d.reservedByNgoId === ngoId || (user?.role === 'public' && d.reservedByNgoId === 'ngo_hope_kitchen')) &&
-      ['assigned', 'arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(d.status)
-  );
+  const myDeliveries = ngoId
+    ? allDonations.filter(
+        (d) =>
+          d.reservedByNgoId === ngoId &&
+          ['assigned', 'arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(d.status)
+      )
+    : [];
 
   // 3. Completed donation history
-  const completedHistory = allDonations.filter(
-    (d) =>
-      (d.reservedByNgoId === ngoId || (user?.role === 'public' && d.reservedByNgoId === 'ngo_hope_kitchen')) &&
-      d.status === 'delivered'
-  );
+  const completedHistory = ngoId
+    ? allDonations.filter((d) => d.reservedByNgoId === ngoId && d.status === 'delivered')
+    : [];
 
   // Totals
   const totalDeliveredMeals = completedHistory.reduce((acc, d) => {
@@ -271,6 +269,28 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
       onShowToast(res.error || 'Failed to file report.', 'error');
     }
   };
+
+  if (!user || user.role !== 'ngo') {
+    return (
+      <div className="max-w-md mx-auto my-16 px-4">
+        <div className="bg-white rounded-xl border border-[#E2DFD2] p-8 text-center space-y-4 shadow-xs">
+          <div className="w-12 h-12 rounded-full bg-[#E8EDE2] text-[#183D2B] flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6 text-[#183D2B]" />
+          </div>
+          <h2 className="font-editorial text-2xl font-bold text-[#183D2B]">Sign In Required</h2>
+          <p className="text-xs text-[#50544C] leading-relaxed">
+            Please sign in with a registered NGO / community kitchen account or select the <strong>NGO Demo Persona</strong> from the top banner to access the NGO Portal.
+          </p>
+          <button
+            onClick={() => onNavigate('landing')}
+            className="w-full py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer"
+          >
+            Return to Public Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
