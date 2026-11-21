@@ -94,9 +94,8 @@ export class LocalStorageReservationRepository implements IReservationRepository
     if (item.status !== 'available') {
       return {
         success: false,
-        error: `Cannot complete reservation: Donation status is '${item.status.replace(/_/g, ' ')}'${
-          item.reservedByNgoName ? ` (claimed by ${item.reservedByNgoName})` : ''
-        }.`,
+        error: `Cannot complete reservation: Donation status is '${item.status.replace(/_/g, ' ')}'${item.reservedByNgoName ? ` (claimed by ${item.reservedByNgoName})` : ''
+          }.`,
       };
     }
 
