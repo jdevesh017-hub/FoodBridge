@@ -83,7 +83,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
 
   const handleTabSelect = (tab: 'overview' | 'discover' | 'reservations' | 'deliveries' | 'history') => {
     setActiveTab(tab);
-    if (tab === 'overview') onNavigate('ngo_discovery');
+    if (tab === 'overview') onNavigate('ngo_overview');
     else if (tab === 'discover') onNavigate('ngo_discover');
     else if (tab === 'reservations') onNavigate('ngo_reservations');
     else if (tab === 'deliveries') onNavigate('ngo_deliveries');

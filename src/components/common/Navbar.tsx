@@ -73,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (currentRole === 'ngo') {
       return (
         <>
-          <button onClick={() => handleNav('ngo_discovery')} className={getLinkClass('ngo_discovery')}>
+          <button onClick={() => handleNav('ngo_overview')} className={getLinkClass('ngo_overview')}>
             Overview
           </button>
           <button onClick={() => handleNav('ngo_discover')} className={getLinkClass('ngo_discover')}>
@@ -143,7 +143,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={() => {
             if (currentRole === 'donor') onNavigate('donor_dashboard');
-            else if (currentRole === 'ngo') onNavigate('ngo_discovery');
+            else if (currentRole === 'ngo') onNavigate('ngo_overview');
             else if (currentRole === 'volunteer') onNavigate('volunteer_dashboard');
             else onNavigate('landing');
           }}

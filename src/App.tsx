@@ -57,6 +57,53 @@ export default function App() {
     }, 4500);
   };
 
+  const isDonorView = (view: string) =>
+    ['donor_dashboard', 'donor_donations', 'donor_create', 'donor_history'].includes(view);
+  const isNgoView = (view: string) =>
+    ['ngo_overview', 'ngo_discover', 'ngo_reservations', 'ngo_deliveries', 'ngo_history'].includes(view);
+  const isVolunteerView = (view: string) =>
+    ['volunteer_dashboard', 'volunteer_available', 'volunteer_active', 'volunteer_history'].includes(view);
+
+  const handleNavigate = (view: string) => {
+    if (isDonorView(view) && session.role !== 'donor') {
+      setCurrentView('landing');
+      showToast('Please sign in as a donor to access the Donor Portal.', 'warning');
+      handleOpenAuth('signin');
+      return;
+    }
+    if (isNgoView(view) && session.role !== 'ngo') {
+      setCurrentView('landing');
+      showToast('Please sign in as an NGO to access the NGO Portal.', 'warning');
+      handleOpenAuth('signin');
+      return;
+    }
+    if (isVolunteerView(view) && session.role !== 'volunteer') {
+      setCurrentView('landing');
+      showToast('Please sign in as a delivery partner/volunteer to access this portal.', 'warning');
+      handleOpenAuth('signin');
+      return;
+    }
+    setCurrentView(view);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Route guard: ensure current view matches active session role
+  useEffect(() => {
+    if (isDonorView(currentView) && session.role !== 'donor') {
+      setCurrentView('landing');
+      showToast('Please sign in as a donor to access the Donor Portal.', 'warning');
+      handleOpenAuth('signin');
+    } else if (isNgoView(currentView) && session.role !== 'ngo') {
+      setCurrentView('landing');
+      showToast('Please sign in as an NGO to access the NGO Portal.', 'warning');
+      handleOpenAuth('signin');
+    } else if (isVolunteerView(currentView) && session.role !== 'volunteer') {
+      setCurrentView('landing');
+      showToast('Please sign in as a delivery partner/volunteer to access this portal.', 'warning');
+      handleOpenAuth('signin');
+    }
+  }, [currentView, session.role]);
+
   const handleRoleSelect = (role: UserRole) => {
     if (role === 'public') {
       authService.signOut();
@@ -65,7 +112,7 @@ export default function App() {
     } else {
       authService.signInWithDemoPersona(role);
       if (role === 'donor') setCurrentView('donor_dashboard');
-      if (role === 'ngo') setCurrentView('ngo_discovery');
+      if (role === 'ngo') setCurrentView('ngo_overview');
       if (role === 'volunteer') setCurrentView('volunteer_dashboard');
       showToast(`Switched perspective to ${role.toUpperCase()} Portal.`, 'info');
     }
@@ -84,7 +131,7 @@ export default function App() {
 
   const handleAuthenticated = (role: UserRole) => {
     if (role === 'donor') setCurrentView('donor_dashboard');
-    else if (role === 'ngo') setCurrentView('ngo_discovery');
+    else if (role === 'ngo') setCurrentView('ngo_overview');
     else if (role === 'volunteer') setCurrentView('volunteer_dashboard');
     else setCurrentView('landing');
   };
@@ -115,10 +162,7 @@ export default function App() {
       {/* 2. Primary 3-Zone Top Bar */}
       <Navbar
         currentView={currentView}
-        onNavigate={(view) => {
-          setCurrentView(view);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onNavigate={handleNavigate}
         onOpenAuth={handleOpenAuth}
         currentRole={session.role}
         userName={session.profile?.fullName}
@@ -129,10 +173,7 @@ export default function App() {
       <main className="flex-1">
         {currentView === 'landing' && (
           <LandingPage
-            onNavigate={(view) => {
-              setCurrentView(view);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={handleNavigate}
             onOpenAuth={handleOpenAuth}
           />
         )}
@@ -140,17 +181,14 @@ export default function App() {
         {currentView === 'how_it_works' && (
           <div className="space-y-12">
             <LandingPage
-              onNavigate={(view) => {
-                setCurrentView(view);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onNavigate={handleNavigate}
               onOpenAuth={handleOpenAuth}
             />
           </div>
         )}
 
         {/* DONOR PORTAL VIEWS */}
-        {['donor_dashboard', 'donor_donations', 'donor_create', 'donor_history'].includes(currentView) && (
+        {session.role === 'donor' && isDonorView(currentView) && (
           <DonorDashboard
             user={session.profile}
             initialTab={
@@ -164,12 +202,12 @@ export default function App() {
             }
             onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
             onShowToast={showToast}
-            onNavigate={setCurrentView}
+            onNavigate={handleNavigate}
           />
         )}
 
         {/* NGO PORTAL VIEWS */}
-        {['ngo_discovery', 'ngo_discover', 'ngo_reservations', 'ngo_deliveries', 'ngo_history'].includes(currentView) && (
+        {session.role === 'ngo' && isNgoView(currentView) && (
           <NgoDashboard
             user={session.profile}
             initialTab={
@@ -185,12 +223,12 @@ export default function App() {
             }
             onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
             onShowToast={showToast}
-            onNavigate={setCurrentView}
+            onNavigate={handleNavigate}
           />
         )}
 
         {/* VOLUNTEER / DELIVERY PARTNER PORTAL VIEWS */}
-        {['volunteer_dashboard', 'volunteer_available', 'volunteer_active', 'volunteer_history'].includes(currentView) && (
+        {session.role === 'volunteer' && isVolunteerView(currentView) && (
           <VolunteerDashboard
             user={session.profile}
             initialTab={
@@ -204,7 +242,7 @@ export default function App() {
             }
             onViewSafetyAudit={(donation) => setAuditingDonation(donation)}
             onShowToast={showToast}
-            onNavigate={setCurrentView}
+            onNavigate={handleNavigate}
           />
         )}
 
@@ -212,10 +250,7 @@ export default function App() {
           <WasteIntelligenceDashboard
             currentUser={session.profile}
             currentRole={session.role}
-            onNavigate={(view) => {
-              setCurrentView(view);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={handleNavigate}
           />
         )}
 
@@ -226,10 +261,7 @@ export default function App() {
 
       {/* 4. Footer */}
       <Footer
-        onNavigate={(view) => {
-          setCurrentView(view);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onNavigate={handleNavigate}
       />
 
       {/* Food Safety Audit Modal */}

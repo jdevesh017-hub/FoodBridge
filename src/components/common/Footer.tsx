@@ -54,7 +54,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
-                  onClick={() => onNavigate('ngo_discovery')}
+                  onClick={() => onNavigate('ngo_overview')}
                   className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
                 >
                   Find Surplus Food
@@ -93,7 +93,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
-                  onClick={() => onNavigate('ngo_discovery')}
+                  onClick={() => onNavigate('ngo_overview')}
                   className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white rounded px-1 -mx-1"
                 >
                   NGO Discovery

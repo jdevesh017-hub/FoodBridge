@@ -287,7 +287,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             <button
-              onClick={() => onNavigate('ngo_discovery')}
+              onClick={() => onNavigate('ngo_overview')}
               className="w-full py-2.5 text-xs font-semibold text-[#183D2B] bg-[#F7F6F0] hover:bg-white rounded transition-colors"
             >
               Browse Available Food
