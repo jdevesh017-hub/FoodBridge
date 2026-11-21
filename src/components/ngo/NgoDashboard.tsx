@@ -59,6 +59,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
   const [maxDistanceKm, setMaxDistanceKm] = useState<number>(25);
   const [minQuantityKg, setMinQuantityKg] = useState<number>(0);
   const [pickupDeadlineHours, setPickupDeadlineHours] = useState<number>(24);
+  const [mobileDiscoverView, setMobileDiscoverView] = useState<'list' | 'map'>('list');
 
   // Reservation Confirmation Modal State
   const [reservingDonation, setReservingDonation] = useState<FoodDonation | null>(null);
@@ -312,19 +313,19 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
         </div>
 
         {/* View Switcher Tabs & Intelligence Shortcut */}
-        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 self-start md:self-auto w-full md:w-auto">
           <button
             onClick={() => onNavigate('intelligence')}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#183D2B] bg-white border border-[#E2DFD2] hover:border-[#647C50] rounded transition-colors shadow-2xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#183D2B] bg-white border border-[#E2DFD2] hover:border-[#647C50] rounded transition-colors shadow-2xs cursor-pointer min-h-[38px] whitespace-nowrap"
           >
             <BarChart3 className="w-3.5 h-3.5 text-[#C77A54]" />
             <span>Supply vs Demand</span>
           </button>
 
-          <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded">
+          <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded overflow-x-auto no-scrollbar w-full sm:w-auto">
             <button
               onClick={() => handleTabSelect('overview')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors whitespace-nowrap min-h-[36px] ${
                 activeTab === 'overview' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
@@ -332,7 +333,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
             </button>
             <button
               onClick={() => handleTabSelect('discover')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors whitespace-nowrap min-h-[36px] ${
                 activeTab === 'discover' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
@@ -340,15 +341,15 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
             </button>
             <button
               onClick={() => handleTabSelect('reservations')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors whitespace-nowrap min-h-[36px] ${
                 activeTab === 'reservations' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
-              My Reservations ({myReservations.length})
+              Reservations ({myReservations.length})
             </button>
             <button
               onClick={() => handleTabSelect('deliveries')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors whitespace-nowrap min-h-[36px] ${
                 activeTab === 'deliveries' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
@@ -356,7 +357,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
             </button>
             <button
               onClick={() => handleTabSelect('history')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors whitespace-nowrap min-h-[36px] ${
                 activeTab === 'history' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
@@ -372,30 +373,30 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
       {activeTab === 'overview' && (
         <div className="space-y-8">
           {/* KPI Summary Strip */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Active Reservations</p>
-              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">{myReservations.length}</p>
+              <p className="font-editorial text-2xl sm:text-3xl font-bold text-[#183D2B] tabular-nums mt-1">{myReservations.length}</p>
               <p className="text-[11px] text-[#50544C] mt-1">Claimed lots awaiting courier pickup</p>
             </div>
 
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">In-Flight Deliveries</p>
-              <p className="font-editorial text-3xl font-bold text-[#C77A54] tabular-nums mt-1">{myDeliveries.length}</p>
+              <p className="font-editorial text-2xl sm:text-3xl font-bold text-[#C77A54] tabular-nums mt-1">{myDeliveries.length}</p>
               <p className="text-[11px] text-[#50544C] mt-1">Couriers en route or arrived</p>
             </div>
 
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Community Meals Served</p>
-              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
+              <p className="font-editorial text-2xl sm:text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
                 ~{totalDeliveredMeals}
               </p>
               <p className="text-[11px] text-[#50544C] mt-1">Across {completedHistory.length} verified handovers</p>
             </div>
 
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Total Surplus Received</p>
-              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
+              <p className="font-editorial text-2xl sm:text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
                 {Math.round(totalDeliveredKg)} <span className="text-sm font-sans font-normal text-[#50544C]">kg</span>
               </p>
               <p className="text-[11px] text-[#50544C] mt-1">Diverted to dining center</p>
@@ -636,12 +637,35 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
             </p>
           </div>
 
+          {/* Mobile View Switcher (List vs Map) */}
+          <div className="flex lg:hidden items-center justify-center p-1 bg-[#E8EDE2] rounded mb-4 w-full">
+            <button
+              type="button"
+              onClick={() => setMobileDiscoverView('list')}
+              className={`flex-1 py-2 text-xs font-semibold rounded text-center transition-colors min-h-[38px] ${
+                mobileDiscoverView === 'list' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C]'
+              }`}
+            >
+              List View ({availableDonations.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileDiscoverView('map')}
+              className={`flex-1 py-2 text-xs font-semibold rounded text-center transition-colors min-h-[38px] flex items-center justify-center gap-1.5 ${
+                mobileDiscoverView === 'map' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C]'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Map View</span>
+            </button>
+          </div>
+
           {/* SPLIT LAYOUT: Listings Left (7 cols), Map Right (5 cols) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left Listings Column */}
-            <div className="lg:col-span-7 space-y-4">
+            <div className={`lg:col-span-7 space-y-4 ${mobileDiscoverView === 'map' ? 'hidden lg:block' : 'block'}`}>
               {availableDonations.length === 0 ? (
-                <div className="bg-white p-10 rounded-lg border border-[#E2DFD2] text-center space-y-2">
+                <div className="bg-white p-8 sm:p-10 rounded-lg border border-[#E2DFD2] text-center space-y-2">
                   <p className="font-editorial text-lg text-[#50544C]">No active surplus matching current filters.</p>
                   <p className="text-xs text-[#737373]">Try resetting dietary or category filters to expand available lots.</p>
                 </div>
@@ -654,7 +678,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                     <div
                       key={donation.id}
                       onClick={() => setSelectedDonationId(donation.id)}
-                      className={`bg-white rounded-lg border p-5 transition-all cursor-pointer shadow-xs ${
+                      className={`bg-white rounded-lg border p-4 sm:p-5 transition-all cursor-pointer shadow-xs ${
                         isSelected ? 'border-[#183D2B] ring-1 ring-[#183D2B]' : 'border-[#E2DFD2] hover:border-[#647C50]'
                       }`}
                     >
@@ -664,22 +688,22 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                             <span className="text-[11px] font-semibold uppercase tracking-wider text-[#647C50]">
                               {donation.donorName} · {donation.donorType}
                             </span>
-                            <h3 className="font-editorial text-xl font-bold text-[#183D2B] mt-0.5">
+                            <h3 className="font-editorial text-lg sm:text-xl font-bold text-[#183D2B] mt-0.5">
                               {donation.foodName}
                             </h3>
                             <p className="text-xs text-[#50544C] mt-0.5">{donation.description}</p>
                           </div>
 
-                          <div className="text-right font-mono tabular-nums">
-                            <span className="font-bold text-lg text-[#183D2B]">{effectiveKg} kg</span>
-                            <p className="text-[11px] text-[#50544C] font-sans">
+                          <div className="text-right font-mono tabular-nums shrink-0">
+                            <span className="font-bold text-base sm:text-lg text-[#183D2B]">{effectiveKg} kg</span>
+                            <p className="text-[10px] sm:text-[11px] text-[#50544C] font-sans">
                               ~{donation.quantity.servingsEstimate} portions
                             </p>
                           </div>
                         </div>
 
                         {/* Metadata Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-[#F7F6F0] p-3 rounded text-xs border border-[#E2DFD2]">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#F7F6F0] p-3 rounded text-xs border border-[#E2DFD2]">
                           <div>
                             <span className="text-[#647C50]">Safety Verdict:</span>
                             <p className="font-medium text-[#183D2B] capitalize">
@@ -711,14 +735,14 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center justify-between pt-2 border-t border-[#E2DFD2]">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-[#E2DFD2]">
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               onViewSafetyAudit(donation);
                             }}
-                            className="text-xs text-[#647C50] hover:text-[#183D2B] underline"
+                            className="text-xs text-[#647C50] hover:text-[#183D2B] underline text-left sm:text-center py-1 cursor-pointer"
                           >
                             Inspect FSSAI Audit Log
                           </button>
@@ -729,7 +753,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                               e.stopPropagation();
                               handleInitiateReservation(donation);
                             }}
-                            className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer"
+                            className="min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer flex items-center justify-center"
                           >
                             Reserve Food Lot
                           </button>
@@ -742,8 +766,8 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
             </div>
 
             {/* Right Map Column */}
-            <div className="lg:col-span-5 sticky top-28 space-y-3">
-              <div className="h-[560px] w-full">
+            <div className={`lg:col-span-5 lg:sticky lg:top-28 space-y-3 ${mobileDiscoverView === 'list' ? 'hidden lg:block' : 'block'}`}>
+              <div className="h-[380px] sm:h-[460px] lg:h-[560px] w-full">
                 <React.Suspense fallback={<MapFallback />}>
                   <LeafletMap
                     donations={availableDonations}
@@ -1057,24 +1081,24 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           onClose={() => setReservingDonation(null)}
           aria-labelledby="confirm-reservation-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2 text-[#183D2B]">
-                <HeartHandshake className="w-5 h-5 text-[#C77A54]" />
-                <h3 id="confirm-reservation-title" className="font-editorial text-xl font-bold">
+                <HeartHandshake className="w-5 h-5 text-[#C77A54] shrink-0" />
+                <h3 id="confirm-reservation-title" className="font-editorial text-lg sm:text-xl font-bold">
                   Confirm Food Reservation
                 </h3>
               </div>
               <button
                 onClick={() => setReservingDonation(null)}
                 aria-label="Close reservation dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-white p-4 rounded border border-[#E2DFD2] space-y-2 text-xs">
+            <div className="bg-white p-3.5 sm:p-4 rounded border border-[#E2DFD2] space-y-2 text-xs">
               <p className="font-semibold text-sm text-[#183D2B]">{reservingDonation.foodName}</p>
               <p className="text-[#50544C]">Donor: {reservingDonation.donorName} ({reservingDonation.donorAddress})</p>
               <div className="flex items-center gap-4 pt-2 font-mono tabular-nums">
@@ -1101,11 +1125,11 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               </p>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setReservingDonation(null)}
-                className="px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923]"
+                className="min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
               >
                 Release Hold
               </button>
@@ -1113,7 +1137,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                 type="button"
                 disabled={confirmLocking}
                 onClick={handleConfirmReservationSubmit}
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs disabled:opacity-50 cursor-pointer"
+                className="min-h-[44px] sm:min-h-[38px] px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center"
               >
                 {confirmLocking ? 'Locking...' : 'Confirm Reservation'}
               </button>
@@ -1129,18 +1153,18 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           onClose={() => setConfirmReceiptDonation(null)}
           aria-labelledby="confirm-receipt-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-start justify-between border-b border-[#E2DFD2] pb-3">
               <div className="flex items-center gap-2 text-emerald-800">
-                <Check className="w-5 h-5" />
-                <h3 id="confirm-receipt-title" className="font-editorial text-xl font-bold">
+                <Check className="w-5 h-5 shrink-0" />
+                <h3 id="confirm-receipt-title" className="font-editorial text-lg sm:text-xl font-bold">
                   Confirm Food Receipt & Distribution
                 </h3>
               </div>
               <button
                 onClick={() => setConfirmReceiptDonation(null)}
                 aria-label="Close dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1162,7 +1186,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                   step="0.1"
                   value={receivedKgInput}
                   onChange={(e) => setReceivedKgInput(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded font-mono font-bold text-sm"
+                  className="w-full px-3 py-2.5 sm:py-2 bg-white border border-[#E2DFD2] rounded font-mono font-bold text-base sm:text-sm"
                 />
                 <p className="text-[11px] text-[#647C50] mt-1">
                   Expected weight: {confirmReceiptDonation.quantity.pickupConfirmedKg || confirmReceiptDonation.quantity.donorEstimatedKg} kg
@@ -1178,7 +1202,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                   required
                   value={receivingSupervisorInput}
                   onChange={(e) => setReceivingSupervisorInput(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2.5 sm:py-2 bg-white border border-[#E2DFD2] rounded text-base sm:text-xs"
                 />
               </div>
 
@@ -1190,21 +1214,21 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                   rows={2}
                   value={receiptNotesInput}
                   onChange={(e) => setReceiptNotesInput(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2.5 sm:py-2 bg-white border border-[#E2DFD2] rounded text-base sm:text-xs"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
                 <button
                   type="button"
                   onClick={() => setConfirmReceiptDonation(null)}
-                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded shadow-xs cursor-pointer"
+                  className="min-h-[44px] sm:min-h-[38px] px-5 py-2 font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded shadow-xs cursor-pointer flex items-center justify-center"
                 >
                   Confirm & Generate Impact Receipt
                 </button>
@@ -1221,18 +1245,18 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           onClose={() => setDiscrepancyDonation(null)}
           aria-labelledby="discrepancy-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-start justify-between border-b border-[#E2DFD2] pb-3">
               <div className="flex items-center gap-2 text-amber-800">
-                <AlertTriangle className="w-5 h-5 text-[#C77A54]" />
-                <h3 id="discrepancy-title" className="font-editorial text-xl font-bold">
+                <AlertTriangle className="w-5 h-5 text-[#C77A54] shrink-0" />
+                <h3 id="discrepancy-title" className="font-editorial text-lg sm:text-xl font-bold">
                   Report Handover Discrepancy
                 </h3>
               </div>
               <button
                 onClick={() => setDiscrepancyDonation(null)}
                 aria-label="Close dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1246,7 +1270,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                 <select
                   value={issueTypeInput}
                   onChange={(e) => setIssueTypeInput(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2.5 sm:py-2 bg-white border border-[#E2DFD2] rounded text-base sm:text-xs"
                 >
                   <option value="quantity_mismatch">Quantity Mismatch (Actual weight differs from ledger)</option>
                   <option value="damaged_food">Damaged Packaging / Contamination</option>
@@ -1266,7 +1290,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                   value={issueWeightInput}
                   onChange={(e) => setIssueWeightInput(e.target.value)}
                   placeholder="e.g. 18.5"
-                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded font-mono"
+                  className="w-full px-3 py-2.5 sm:py-2 bg-white border border-[#E2DFD2] rounded font-mono text-base sm:text-xs"
                 />
               </div>
 
@@ -1280,21 +1304,21 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                   value={issueDetailsInput}
                   onChange={(e) => setIssueDetailsInput(e.target.value)}
                   placeholder="Describe the discrepancy clearly for the quality assurance ledger..."
-                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2.5 sm:py-2 bg-white border border-[#E2DFD2] rounded text-base sm:text-xs"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
                 <button
                   type="button"
                   onClick={() => setDiscrepancyDonation(null)}
-                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 font-semibold text-white bg-amber-800 hover:bg-amber-900 rounded shadow-xs cursor-pointer"
+                  className="min-h-[44px] sm:min-h-[38px] px-5 py-2 font-semibold text-white bg-amber-800 hover:bg-amber-900 rounded shadow-xs cursor-pointer flex items-center justify-center"
                 >
                   Log Discrepancy in Audit Ledger
                 </button>
@@ -1311,24 +1335,24 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           onClose={() => setReceiptDonation(null)}
           aria-labelledby="receipt-dialog-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#183D2B]" />
-                <h3 id="receipt-dialog-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+                <h3 id="receipt-dialog-title" className="font-editorial text-lg sm:text-xl font-bold text-[#183D2B]">
                   Verified Impact Certificate
                 </h3>
               </div>
               <button
                 onClick={() => setReceiptDonation(null)}
                 aria-label="Close certificate"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-white p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
+            <div className="bg-white p-3.5 sm:p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
               <div className="flex justify-between items-center text-[11px] text-[#647C50] font-mono">
                 <span>Receipt: {receiptDonation.impactReceipt.receiptId}</span>
                 <span>{new Date(receiptDonation.impactReceipt.deliveredAt).toLocaleDateString()}</span>
@@ -1364,7 +1388,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setReceiptDonation(null)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
+                className="w-full sm:w-auto min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38] cursor-pointer flex items-center justify-center"
               >
                 Close Certificate
               </button>

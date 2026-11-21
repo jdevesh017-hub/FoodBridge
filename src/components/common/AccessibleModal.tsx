@@ -17,7 +17,7 @@ export const AccessibleModal: React.FC<AccessibleModalProps> = ({
   role = 'dialog',
   'aria-modal': ariaModal = 'true',
   'aria-labelledby': ariaLabelledBy,
-  className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs',
+  className = 'fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs',
   children,
 }) => {
   const containerRef = useModalA11y(isOpen, onClose);

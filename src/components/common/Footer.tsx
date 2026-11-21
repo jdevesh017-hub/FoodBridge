@@ -170,20 +170,20 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="policy-dialog-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs"
         >
-          <div className="bg-[#F7F6F0] text-[#252923] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+          <div className="bg-[#F7F6F0] text-[#252923] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#183D2B]" />
-                <h3 id="policy-dialog-title" className="font-editorial text-lg font-bold text-[#183D2B]">
+                <FileText className="w-5 h-5 text-[#183D2B] shrink-0" />
+                <h3 id="policy-dialog-title" className="font-editorial text-base sm:text-lg font-bold text-[#183D2B]">
                   {activeModal === 'privacy' ? 'Data Privacy & Local Storage Charter' : 'Terms of Non-Commercial Redistribution'}
                 </h3>
               </div>
               <button
                 onClick={() => setActiveModal(null)}
                 aria-label="Close dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B]"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -220,7 +220,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <div className="flex justify-end pt-2 border-t border-[#E2DFD2]">
               <button
                 onClick={() => setActiveModal(null)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded transition-colors focus-visible:ring-2 focus-visible:ring-[#183D2B]"
+                className="w-full sm:w-auto min-h-[44px] sm:min-h-[36px] px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded transition-colors focus-visible:ring-2 focus-visible:ring-[#183D2B] cursor-pointer flex items-center justify-center"
               >
                 Understood & Close
               </button>

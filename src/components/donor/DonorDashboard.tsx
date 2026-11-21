@@ -345,11 +345,11 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
         </div>
 
         {/* Tab Selector & Primary Action */}
-        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-          <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+          <div className="w-full sm:w-auto flex items-center gap-1 bg-[#E8EDE2] p-1 rounded overflow-x-auto no-scrollbar">
             <button
               onClick={() => handleTabSelect('overview')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-2 text-xs font-semibold rounded whitespace-nowrap min-h-[38px] transition-colors ${
                 activeTab === 'overview'
                   ? 'bg-white text-[#183D2B] shadow-2xs'
                   : 'text-[#50544C] hover:text-[#252923]'
@@ -359,7 +359,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
             </button>
             <button
               onClick={() => handleTabSelect('donations')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-2 text-xs font-semibold rounded whitespace-nowrap min-h-[38px] transition-colors ${
                 activeTab === 'donations'
                   ? 'bg-white text-[#183D2B] shadow-2xs'
                   : 'text-[#50544C] hover:text-[#252923]'
@@ -369,7 +369,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
             </button>
             <button
               onClick={() => handleTabSelect('history')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-2 text-xs font-semibold rounded whitespace-nowrap min-h-[38px] transition-colors ${
                 activeTab === 'history'
                   ? 'bg-white text-[#183D2B] shadow-2xs'
                   : 'text-[#50544C] hover:text-[#252923]'
@@ -381,7 +381,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
 
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-all rounded shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-all rounded shadow-xs cursor-pointer min-h-[44px] shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Log Surplus Batch</span>
@@ -395,20 +395,20 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
       {activeTab === 'overview' && (
         <div className="space-y-8">
           {/* KPI Summary Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Active Surplus Batches</p>
               <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">{activeCount}</p>
               <p className="text-[11px] text-[#50544C] mt-1">Open in pool or courier en route</p>
             </div>
 
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Pending Pickups</p>
               <p className="font-editorial text-3xl font-bold text-[#C77A54] tabular-nums mt-1">{pendingPickups}</p>
               <p className="text-[11px] text-[#50544C] mt-1">Couriers en route to kitchen</p>
             </div>
 
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Total Surplus Diverted</p>
               <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
                 {Math.round(totalRecoveredKg)} <span className="text-sm font-sans font-normal text-[#50544C]">kg</span>
@@ -416,7 +416,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               <p className="text-[11px] text-[#50544C] mt-1">Diverted from municipal disposal</p>
             </div>
 
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Community Meals Served</p>
               <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
                 ~{totalMealsProvided}
@@ -573,7 +573,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
       {activeTab === 'donations' && (
         <div className="bg-white rounded-lg border border-[#E2DFD2] shadow-xs overflow-hidden">
           {/* Sub-header with Active Filters */}
-          <div className="p-5 border-b border-[#E2DFD2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FBF9F5]">
+          <div className="p-4 sm:p-5 border-b border-[#E2DFD2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FBF9F5]">
             <div>
               <h2 className="font-editorial text-xl font-bold text-[#183D2B]">
                 Active Surplus Listings
@@ -583,35 +583,35 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded">
+            <div className="flex items-center gap-1.5 bg-[#E8EDE2] p-1 rounded overflow-x-auto no-scrollbar max-w-full">
               <button
                 onClick={() => setActiveSubFilter('all')}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                  activeSubFilter === 'all' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+                className={`px-3 py-1.5 text-xs font-medium rounded whitespace-nowrap min-h-[34px] transition-colors ${
+                  activeSubFilter === 'all' ? 'bg-white text-[#183D2B] shadow-2xs font-semibold' : 'text-[#50544C] hover:text-[#252923]'
                 }`}
               >
                 All Active ({activeDonations.length})
               </button>
               <button
                 onClick={() => setActiveSubFilter('available')}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                  activeSubFilter === 'available' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+                className={`px-3 py-1.5 text-xs font-medium rounded whitespace-nowrap min-h-[34px] transition-colors ${
+                  activeSubFilter === 'available' ? 'bg-white text-[#183D2B] shadow-2xs font-semibold' : 'text-[#50544C] hover:text-[#252923]'
                 }`}
               >
                 Available ({activeDonations.filter((d) => d.status === 'available').length})
               </button>
               <button
                 onClick={() => setActiveSubFilter('reserved')}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                  activeSubFilter === 'reserved' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+                className={`px-3 py-1.5 text-xs font-medium rounded whitespace-nowrap min-h-[34px] transition-colors ${
+                  activeSubFilter === 'reserved' ? 'bg-white text-[#183D2B] shadow-2xs font-semibold' : 'text-[#50544C] hover:text-[#252923]'
                 }`}
               >
                 Reserved ({activeDonations.filter((d) => ['reserved', 'assigned', 'arrived_at_donor'].includes(d.status)).length})
               </button>
               <button
                 onClick={() => setActiveSubFilter('in_transit')}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                  activeSubFilter === 'in_transit' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
+                className={`px-3 py-1.5 text-xs font-medium rounded whitespace-nowrap min-h-[34px] transition-colors ${
+                  activeSubFilter === 'in_transit' ? 'bg-white text-[#183D2B] shadow-2xs font-semibold' : 'text-[#50544C] hover:text-[#252923]'
                 }`}
               >
                 In Transit ({activeDonations.filter((d) => ['picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(d.status)).length})
@@ -621,7 +621,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
 
           {/* Active Table Body */}
           {filteredActiveDonations.length === 0 ? (
-            <div className="p-12 text-center space-y-3">
+            <div className="p-8 sm:p-12 text-center space-y-3">
               <Package className="w-8 h-8 text-[#647C50] mx-auto opacity-60" />
               <p className="font-editorial text-lg text-[#50544C]">No active surplus batches under this filter.</p>
               <p className="text-xs text-[#737373]">
@@ -629,121 +629,212 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </p>
               <button
                 onClick={openCreateModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium text-white bg-[#183D2B] rounded hover:bg-[#254F38] min-h-[44px]"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Log First Surplus Batch</span>
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#F7F6F0] text-[#647C50] font-semibold border-b border-[#E2DFD2] uppercase tracking-wider text-[11px]">
-                  <tr>
-                    <th className="py-3 px-4">Food Item & Category</th>
-                    <th className="py-3 px-4">Quantity Ledger</th>
-                    <th className="py-3 px-4">FSSAI Safety</th>
-                    <th className="py-3 px-4">Recipient / Courier</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E2DFD2] text-[#252923]">
-                  {filteredActiveDonations.map((d) => {
-                    const effectiveKg = d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg;
-                    return (
-                      <tr key={d.id} className="hover:bg-[#FBF9F5] transition-colors">
-                        <td className="py-3.5 px-4">
-                          <p className="font-semibold text-sm text-[#183D2B]">{d.foodName}</p>
-                          <p className="text-[11px] text-[#50544C] capitalize">
-                            {d.foodCategory.replace('_', ' ')} · {d.dietaryTags.join(', ')}
-                          </p>
-                        </td>
-                        <td className="py-3.5 px-4 font-mono tabular-nums">
-                          <span className="font-bold text-[#183D2B] text-sm">{effectiveKg} kg</span>
-                          <p className="text-[10px] text-[#50544C] font-sans">
-                            ~{d.quantity.servingsEstimate} meals
-                            {d.quantity.pickupConfirmedKg ? ' (Pickup Verified)' : d.quantity.measuredKg ? ' (Scale)' : ' (Estimate)'}
-                          </p>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="flex flex-col gap-1 items-start">
-                            <span
-                              className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded ${
-                                d.safety.assessmentOutcome === 'SUITABLE_FOR_REVIEW'
-                                  ? 'bg-emerald-50 text-emerald-800'
-                                  : d.safety.assessmentOutcome === 'NEEDS_REVIEW'
-                                  ? 'bg-amber-50 text-amber-800'
-                                  : 'bg-orange-50 text-orange-800'
-                              }`}
-                            >
-                              <ShieldCheck className="w-3 h-3" />
-                              <span className="capitalize">{(d.safety.assessmentOutcome || d.safety.complianceStatus).replace(/_/g, ' ')}</span>
-                            </span>
-                            <p className="text-[10px] text-[#50544C]">
-                              {d.safety.storageCondition.replace(/_/g, ' ')} ({d.safety.temperatureCelsius !== undefined ? `${d.safety.temperatureCelsius}°${d.safety.temperatureUnit === 'fahrenheit' ? 'F' : 'C'}` : '--'})
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#F7F6F0] text-[#647C50] font-semibold border-b border-[#E2DFD2] uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="py-3 px-4">Food Item & Category</th>
+                      <th className="py-3 px-4">Quantity Ledger</th>
+                      <th className="py-3 px-4">FSSAI Safety</th>
+                      <th className="py-3 px-4">Recipient / Courier</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E2DFD2] text-[#252923]">
+                    {filteredActiveDonations.map((d) => {
+                      const effectiveKg = d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg;
+                      return (
+                        <tr key={d.id} className="hover:bg-[#FBF9F5] transition-colors">
+                          <td className="py-3.5 px-4">
+                            <p className="font-semibold text-sm text-[#183D2B]">{d.foodName}</p>
+                            <p className="text-[11px] text-[#50544C] capitalize">
+                              {d.foodCategory.replace('_', ' ')} · {d.dietaryTags.join(', ')}
                             </p>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          {d.reservedByNgoName ? (
-                            <>
-                              <p className="font-medium text-[#252923]">{d.reservedByNgoName}</p>
+                          </td>
+                          <td className="py-3.5 px-4 font-mono tabular-nums">
+                            <span className="font-bold text-[#183D2B] text-sm">{effectiveKg} kg</span>
+                            <p className="text-[10px] text-[#50544C] font-sans">
+                              ~{d.quantity.servingsEstimate} meals
+                              {d.quantity.pickupConfirmedKg ? ' (Pickup Verified)' : d.quantity.measuredKg ? ' (Scale)' : ' (Estimate)'}
+                            </p>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex flex-col gap-1 items-start">
+                              <span
+                                className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded ${
+                                  d.safety.assessmentOutcome === 'SUITABLE_FOR_REVIEW'
+                                    ? 'bg-emerald-50 text-emerald-800'
+                                    : d.safety.assessmentOutcome === 'NEEDS_REVIEW'
+                                    ? 'bg-amber-50 text-amber-800'
+                                    : 'bg-orange-50 text-orange-800'
+                                }`}
+                              >
+                                <ShieldCheck className="w-3 h-3" />
+                                <span className="capitalize">{(d.safety.assessmentOutcome || d.safety.complianceStatus).replace(/_/g, ' ')}</span>
+                              </span>
                               <p className="text-[10px] text-[#50544C]">
-                                Courier: {d.assignedVolunteerName || 'Awaiting assignment'}
+                                {d.safety.storageCondition.replace(/_/g, ' ')} ({d.safety.temperatureCelsius !== undefined ? `${d.safety.temperatureCelsius}°${d.safety.temperatureUnit === 'fahrenheit' ? 'F' : 'C'}` : '--'})
                               </p>
-                            </>
-                          ) : (
-                            <span className="text-[#737373] italic">Available in NGO pool</span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <StatusBadge status={d.status} />
-                        </td>
-                        <td className="py-3.5 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => setInspectDonation(d)}
-                            className="text-xs text-[#183D2B] hover:text-[#C77A54] font-medium underline inline-flex items-center gap-0.5"
-                          >
-                            <Eye className="w-3 h-3" />
-                            Details
-                          </button>
-
-                          <button
-                            onClick={() => onViewSafetyAudit(d)}
-                            className="text-xs text-[#183D2B] hover:text-[#C77A54] font-medium underline inline-flex items-center gap-0.5"
-                          >
-                            Audit
-                          </button>
-
-                          {/* Allow Edit only when Available */}
-                          {d.status === 'available' && (
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            {d.reservedByNgoName ? (
+                              <>
+                                <p className="font-medium text-[#252923]">{d.reservedByNgoName}</p>
+                                <p className="text-[10px] text-[#50544C]">
+                                  Courier: {d.assignedVolunteerName || 'Awaiting assignment'}
+                                </p>
+                              </>
+                            ) : (
+                              <span className="text-[#737373] italic">Available in NGO pool</span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <StatusBadge status={d.status} />
+                          </td>
+                          <td className="py-3.5 px-4 text-right space-x-2">
                             <button
-                              onClick={() => openEditModal(d)}
-                              className="text-xs text-[#183D2B] hover:text-[#254F38] font-medium underline inline-flex items-center gap-0.5"
+                              onClick={() => setInspectDonation(d)}
+                              className="text-xs text-[#183D2B] hover:text-[#C77A54] font-medium underline inline-flex items-center gap-0.5"
                             >
-                              <Edit3 className="w-3 h-3" />
-                              Edit
+                              <Eye className="w-3 h-3" />
+                              Details
                             </button>
-                          )}
 
-                          {/* Allow Cancel before courier pickup */}
-                          {['available', 'reserved', 'assigned', 'arrived_at_donor'].includes(d.status) && (
                             <button
-                              onClick={() => setCancellingDonation(d)}
-                              className="text-xs text-red-700 hover:text-red-900 font-medium underline inline-flex items-center gap-0.5"
+                              onClick={() => onViewSafetyAudit(d)}
+                              className="text-xs text-[#183D2B] hover:text-[#C77A54] font-medium underline inline-flex items-center gap-0.5"
                             >
-                              <Ban className="w-3 h-3" />
-                              Cancel
+                              Audit
                             </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+
+                            {/* Allow Edit only when Available */}
+                            {d.status === 'available' && (
+                              <button
+                                onClick={() => openEditModal(d)}
+                                className="text-xs text-[#183D2B] hover:text-[#254F38] font-medium underline inline-flex items-center gap-0.5"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                                Edit
+                              </button>
+                            )}
+
+                            {/* Allow Cancel before courier pickup */}
+                            {['available', 'reserved', 'assigned', 'arrived_at_donor'].includes(d.status) && (
+                              <button
+                                onClick={() => setCancellingDonation(d)}
+                                className="text-xs text-red-700 hover:text-red-900 font-medium underline inline-flex items-center gap-0.5"
+                              >
+                                <Ban className="w-3 h-3" />
+                                Cancel
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="block md:hidden divide-y divide-[#E2DFD2]">
+                {filteredActiveDonations.map((d) => {
+                  const effectiveKg = d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg;
+                  return (
+                    <div key={d.id} className="p-4 space-y-3 bg-white">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-semibold text-sm text-[#183D2B] leading-tight">{d.foodName}</h4>
+                          <p className="text-[11px] text-[#50544C] capitalize mt-0.5">
+                            {d.foodCategory.replace(/_/g, ' ')} · {d.dietaryTags.join(', ')}
+                          </p>
+                        </div>
+                        <StatusBadge status={d.status} />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs bg-[#F7F6F0] p-3 rounded border border-[#E2DFD2]">
+                        <div>
+                          <span className="text-[#647C50] text-[10px] uppercase font-semibold">Quantity</span>
+                          <p className="font-bold font-mono text-[#183D2B] text-sm mt-0.5">{effectiveKg} kg</p>
+                          <p className="text-[10px] text-[#50544C]">
+                            ~{d.quantity.servingsEstimate} meals
+                            {d.quantity.pickupConfirmedKg ? ' (Verified)' : d.quantity.measuredKg ? ' (Scale)' : ' (Est)'}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-[#647C50] text-[10px] uppercase font-semibold">Safety & Thermal</span>
+                          <p className="font-medium text-[#252923] text-xs mt-0.5 capitalize">
+                            {d.safety.storageCondition.replace(/_/g, ' ')}
+                          </p>
+                          <p className="text-[10px] text-[#50544C]">
+                            {d.safety.temperatureCelsius !== undefined ? `${d.safety.temperatureCelsius}°${d.safety.temperatureUnit === 'fahrenheit' ? 'F' : 'C'}` : 'Ambient'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-[#50544C] space-y-0.5">
+                        <p>
+                          <span className="font-medium text-[#252923]">Recipient: </span>
+                          {d.reservedByNgoName || <span className="italic">Available in NGO pool</span>}
+                        </p>
+                        {d.assignedVolunteerName && (
+                          <p>
+                            <span className="font-medium text-[#252923]">Courier: </span>
+                            {d.assignedVolunteerName}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#E2DFD2]">
+                        <button
+                          onClick={() => setInspectDonation(d)}
+                          className="min-h-[38px] px-3 py-1.5 text-xs text-[#183D2B] bg-[#E8EDE2] hover:bg-[#d8e0d0] rounded font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Details
+                        </button>
+                        <button
+                          onClick={() => onViewSafetyAudit(d)}
+                          className="min-h-[38px] px-3 py-1.5 text-xs text-[#183D2B] bg-[#E8EDE2] hover:bg-[#d8e0d0] rounded font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-[#647C50]" />
+                          Audit
+                        </button>
+                        {d.status === 'available' && (
+                          <button
+                            onClick={() => openEditModal(d)}
+                            className="min-h-[38px] px-3 py-1.5 text-xs text-[#183D2B] bg-[#E8EDE2] hover:bg-[#d8e0d0] rounded font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            Edit
+                          </button>
+                        )}
+                        {['available', 'reserved', 'assigned', 'arrived_at_donor'].includes(d.status) && (
+                          <button
+                            onClick={() => setCancellingDonation(d)}
+                            className="min-h-[38px] px-3 py-1.5 text-xs text-red-700 hover:bg-red-50 rounded border border-red-200 font-semibold inline-flex items-center gap-1.5 ml-auto cursor-pointer"
+                          >
+                            <Ban className="w-3.5 h-3.5" />
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -764,10 +855,10 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded">
+            <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded overflow-x-auto no-scrollbar w-full sm:w-auto">
               <button
                 onClick={() => setHistorySubFilter('all')}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap min-h-[36px] ${
                   historySubFilter === 'all' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
                 }`}
               >
@@ -775,7 +866,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </button>
               <button
                 onClick={() => setHistorySubFilter('delivered')}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap min-h-[36px] ${
                   historySubFilter === 'delivered' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
                 }`}
               >
@@ -783,7 +874,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </button>
               <button
                 onClick={() => setHistorySubFilter('cancelled')}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap min-h-[36px] ${
                   historySubFilter === 'cancelled' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
                 }`}
               >
@@ -802,8 +893,9 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            <>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-xs">
                 <thead className="bg-[#F7F6F0] text-[#647C50] font-semibold border-b border-[#E2DFD2] uppercase tracking-wider text-[11px]">
                   <tr>
                     <th className="py-3 px-4">Food Item & Completion Date</th>
@@ -886,6 +978,85 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Card View for History */}
+            <div className="block md:hidden divide-y divide-[#E2DFD2]">
+              {filteredHistoryDonations.map((d) => {
+                const deliveredKg = d.quantity.deliveredKg || d.quantity.pickupConfirmedKg || d.quantity.measuredKg || d.quantity.donorEstimatedKg;
+                const mealsServed = d.impactReceipt?.mealsProvided || d.quantity.servingsEstimate || Math.round(deliveredKg / 0.35);
+
+                return (
+                  <div key={d.id} className="p-4 space-y-3 bg-white">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-semibold text-sm text-[#183D2B] leading-tight">{d.foodName}</h4>
+                        <p className="text-[11px] text-[#50544C] mt-0.5">
+                          {new Date(d.updatedAt || d.createdAt).toLocaleDateString([], {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })} · {d.foodCategory.replace(/_/g, ' ')}
+                        </p>
+                      </div>
+                      <StatusBadge status={d.status} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs bg-[#F7F6F0] p-3 rounded border border-[#E2DFD2]">
+                      <div>
+                        <span className="text-[#647C50] text-[10px] uppercase font-semibold">Quantity</span>
+                        <p className="font-bold font-mono text-[#183D2B] text-sm mt-0.5">{deliveredKg} kg</p>
+                      </div>
+                      <div>
+                        <span className="text-[#647C50] text-[10px] uppercase font-semibold">Meals Served</span>
+                        <p className="font-bold font-mono text-sm mt-0.5 text-emerald-800">
+                          {d.status === 'delivered' ? `~${mealsServed} meals` : <span className="text-[#737373] italic font-normal text-xs">0 meals</span>}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-[#50544C] space-y-0.5">
+                      <p>
+                        <span className="font-medium text-[#252923]">Recipient: </span>
+                        {d.reservedByNgoName || 'Unreserved'}
+                      </p>
+                      {d.assignedVolunteerName && (
+                        <p>
+                          <span className="font-medium text-[#252923]">Courier: </span>
+                          {d.assignedVolunteerName}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#E2DFD2]">
+                      <button
+                        onClick={() => setInspectDonation(d)}
+                        className="min-h-[38px] px-3 py-1.5 text-xs text-[#183D2B] bg-[#E8EDE2] hover:bg-[#d8e0d0] rounded font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        Details
+                      </button>
+                      <button
+                        onClick={() => onViewSafetyAudit(d)}
+                        className="min-h-[38px] px-3 py-1.5 text-xs text-[#183D2B] bg-[#E8EDE2] hover:bg-[#d8e0d0] rounded font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#647C50]" />
+                        Audit
+                      </button>
+                      {d.status === 'delivered' && d.impactReceipt && (
+                        <button
+                          onClick={() => setReceiptDonation(d)}
+                          className="min-h-[38px] px-3 py-1.5 text-xs text-white bg-emerald-800 hover:bg-emerald-900 rounded font-semibold inline-flex items-center gap-1.5 ml-auto cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          View Receipt
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
           )}
         </div>
       )}
@@ -905,9 +1076,9 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
           aria-labelledby="create-donation-title"
         >
           <div className="bg-[#F7F6F0] rounded-xl max-w-2xl w-full border border-[#E2DFD2] shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-            <div className="px-6 py-4 border-b border-[#E2DFD2] bg-[#E8EDE2] flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#E2DFD2] bg-[#E8EDE2] flex items-center justify-between">
               <div>
-                <h3 id="create-donation-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+                <h3 id="create-donation-title" className="font-editorial text-lg sm:text-xl font-bold text-[#183D2B]">
                   {editingDonation ? 'Edit Surplus Food Listing' : 'Log Commercial Surplus Food'}
                 </h3>
                 <p className="text-xs text-[#50544C]">
@@ -920,13 +1091,13 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                   setEditingDonation(null);
                 }}
                 aria-label="Close dialog"
-                className="p-1 text-[#50544C] hover:text-[#252923] rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center text-[#50544C] hover:text-[#252923] rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="p-6 space-y-5 overflow-y-auto">
+            <form onSubmit={handleFormSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
               {/* Food Details */}
               <div className="space-y-4">
                 <div>
@@ -939,7 +1110,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                     placeholder="e.g. Steamed Basmati Rice & Mixed Vegetable Curry"
                     value={foodName}
                     onChange={(e) => setFoodName(e.target.value)}
-                    className="w-full px-3.5 py-2 text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
                   />
                 </div>
 
@@ -951,7 +1122,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                     <select
                       value={foodCategory}
                       onChange={(e) => setFoodCategory(e.target.value as FoodCategory)}
-                      className="w-full px-3.5 py-2 text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
                     >
                       <option value="prepared_meals">Prepared Cooked Meals (Hot/Chilled)</option>
                       <option value="bakery_grains">Bakery & Grains (Bread, Loaves)</option>
@@ -973,7 +1144,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                       step="0.5"
                       value={estimatedKg}
                       onChange={(e) => setEstimatedKg(Number(e.target.value))}
-                      className="w-full px-3.5 py-2 text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden font-mono"
+                      className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden font-mono"
                     />
                     <p className="text-[11px] text-[#647C50] mt-1">
                       Estimated Servings: ~{Math.round(estimatedKg / 0.35)} meal portions (350g/meal)
@@ -1048,7 +1219,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                     placeholder="Optional: Enter scale reading if weighed in kitchen"
                     value={measuredKg}
                     onChange={(e) => setMeasuredKg(e.target.value)}
-                    className="w-full px-3.5 py-2 text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden font-mono"
+                    className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden font-mono"
                   />
                 </div>
 
@@ -1056,7 +1227,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                   <label className="block text-xs font-semibold text-[#252923] mb-1">
                     Dietary Declarations
                   </label>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {(['vegetarian', 'vegan', 'halal', 'nut_free', 'dairy_free', 'gluten_free'] as DietaryTag[]).map((tag) => {
                       const isSelected = dietaryTags.includes(tag);
                       return (
@@ -1070,7 +1241,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                               setDietaryTags([...dietaryTags, tag]);
                             }
                           }}
-                          className={`px-2.5 py-1 text-xs rounded border transition-colors capitalize ${
+                          className={`min-h-[36px] px-3 py-1.5 text-xs rounded border transition-colors capitalize cursor-pointer ${
                             isSelected
                               ? 'bg-[#183D2B] text-white border-[#183D2B] font-medium'
                               : 'bg-white text-[#50544C] border-[#E2DFD2] hover:border-[#647C50]'
@@ -1092,13 +1263,13 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                     placeholder="Brief description of dishes, ingredients, or allergens."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3.5 py-2 text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
                   />
                 </div>
               </div>
 
               {/* Food Safety & Thermal Compliance Parameters */}
-              <div className="p-4 bg-white rounded border border-[#E2DFD2] space-y-4">
+              <div className="p-3.5 sm:p-4 bg-white rounded border border-[#E2DFD2] space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-[#183D2B] flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-[#C77A54]" />
@@ -1115,7 +1286,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                     <select
                       value={storageCondition}
                       onChange={(e) => setStorageCondition(e.target.value as StorageCondition)}
-                      className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
                     >
                       <option value="hot_held">Hot Held (Standard: ≥ 65°C)</option>
                       <option value="refrigerated">Refrigerated (Standard: ≤ 5°C)</option>
@@ -1133,14 +1304,14 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                         <button
                           type="button"
                           onClick={() => setTemperatureUnit('celsius')}
-                          className={`px-1.5 py-0.5 ${temperatureUnit === 'celsius' ? 'bg-[#183D2B] text-white font-bold' : 'bg-white text-[#50544C]'}`}
+                          className={`min-h-[28px] px-2.5 py-0.5 cursor-pointer ${temperatureUnit === 'celsius' ? 'bg-[#183D2B] text-white font-bold' : 'bg-white text-[#50544C]'}`}
                         >
                           °C
                         </button>
                         <button
                           type="button"
                           onClick={() => setTemperatureUnit('fahrenheit')}
-                          className={`px-1.5 py-0.5 ${temperatureUnit === 'fahrenheit' ? 'bg-[#183D2B] text-white font-bold' : 'bg-white text-[#50544C]'}`}
+                          className={`min-h-[28px] px-2.5 py-0.5 cursor-pointer ${temperatureUnit === 'fahrenheit' ? 'bg-[#183D2B] text-white font-bold' : 'bg-white text-[#50544C]'}`}
                         >
                           °F
                         </button>
@@ -1152,7 +1323,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                       placeholder={temperatureUnit === 'celsius' ? 'e.g. 68.5' : 'e.g. 155'}
                       value={temperatureCelsius}
                       onChange={(e) => setTemperatureCelsius(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
                     />
                   </div>
 
@@ -1166,7 +1337,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                       max="240"
                       value={prepTimeMinutesAgo}
                       onChange={(e) => setPrepTimeMinutesAgo(Number(e.target.value))}
-                      className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
                     />
                   </div>
                 </div>
@@ -1179,7 +1350,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                     <select
                       value={packagingCondition}
                       onChange={(e) => setPackagingCondition(e.target.value as any)}
-                      className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
                     >
                       <option value="food_grade_sealed">Food Grade Sealed Container</option>
                       <option value="covered_clean">Covered Clean Catering Pans</option>
@@ -1199,28 +1370,28 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                       max="24"
                       value={pickupHoursRemaining}
                       onChange={(e) => setPickupHoursRemaining(Number(e.target.value))}
-                      className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <label className="flex items-center gap-2 text-xs text-[#252923] cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-xs text-[#252923] cursor-pointer py-1">
                     <input
                       type="checkbox"
                       checked={isAllergenLabelled}
                       onChange={(e) => setIsAllergenLabelled(e.target.checked)}
-                      className="rounded border-[#E2DFD2] text-[#183D2B] focus:ring-[#183D2B]"
+                      className="w-4 h-4 rounded border-[#E2DFD2] text-[#183D2B] focus:ring-[#183D2B]"
                     />
                     <span>Allergen labels marked on transport container</span>
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs text-[#252923] cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-xs text-[#252923] cursor-pointer py-1">
                     <input
                       type="checkbox"
                       checked={isCleanPackaged}
                       onChange={(e) => setIsCleanPackaged(e.target.checked)}
-                      className="rounded border-[#E2DFD2] text-[#183D2B] focus:ring-[#183D2B]"
+                      className="w-4 h-4 rounded border-[#E2DFD2] text-[#183D2B] focus:ring-[#183D2B]"
                     />
                     <span>Surfaces sanitized before food transfer</span>
                   </label>
@@ -1228,20 +1399,20 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2DFD2]">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#E2DFD2]">
                 <button
                   type="button"
                   onClick={() => {
                     setShowCreateModal(false);
                     setEditingDonation(null);
                   }}
-                  className="px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923] rounded"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer"
+                  className="min-h-[44px] sm:min-h-[38px] px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer flex items-center justify-center"
                 >
                   {editingDonation ? 'Save Updates' : 'Publish to NGO Pool'}
                 </button>
@@ -1258,18 +1429,18 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
           onClose={() => setCancellingDonation(null)}
           aria-labelledby="cancel-donation-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
               <div className="flex items-center gap-2 text-red-800">
-                <Ban className="w-5 h-5" />
-                <h3 id="cancel-donation-title" className="font-editorial text-xl font-bold">
+                <Ban className="w-5 h-5 shrink-0" />
+                <h3 id="cancel-donation-title" className="font-editorial text-lg sm:text-xl font-bold">
                   Cancel Donation Listing
                 </h3>
               </div>
               <button
                 onClick={() => setCancellingDonation(null)}
                 aria-label="Close dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1293,7 +1464,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                 <select
                   value={cancelReasonInput}
                   onChange={(e) => setCancelReasonInput(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2.5 sm:py-2 text-base sm:text-xs bg-white border border-[#E2DFD2] rounded"
                 >
                   <option value="Surplus lot no longer available">Surplus lot no longer available</option>
                   <option value="Internal kitchen use / served to banquet guests">Internal kitchen use / served to banquet guests</option>
@@ -1303,17 +1474,17 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setCancellingDonation(null)}
-                  className="px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923]"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
                 >
                   Keep Listing
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-red-800 hover:bg-red-900 rounded"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-white bg-red-800 hover:bg-red-900 rounded flex items-center justify-center cursor-pointer"
                 >
                   Confirm Cancellation
                 </button>
@@ -1330,26 +1501,26 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
           onClose={() => setInspectDonation(null)}
           aria-labelledby="inspect-donation-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
               <div>
                 <span className="text-[10px] font-semibold text-[#647C50] uppercase tracking-wider">
                   Surplus Batch Ledger · {inspectDonation.id}
                 </span>
-                <h3 id="inspect-donation-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+                <h3 id="inspect-donation-title" className="font-editorial text-lg sm:text-xl font-bold text-[#183D2B]">
                   {inspectDonation.foodName}
                 </h3>
               </div>
               <button
                 onClick={() => setInspectDonation(null)}
                 aria-label="Close dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-white p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
+            <div className="bg-white p-3.5 sm:p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-[#647C50]">Status</span>
                 <StatusBadge status={inspectDonation.status} />
@@ -1408,7 +1579,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setInspectDonation(null)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
+                className="w-full sm:w-auto min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38] cursor-pointer flex items-center justify-center"
               >
                 Close
               </button>
@@ -1424,24 +1595,24 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
           onClose={() => setReceiptDonation(null)}
           aria-labelledby="receipt-donation-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#183D2B]" />
-                <h3 id="receipt-donation-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+                <h3 id="receipt-donation-title" className="font-editorial text-lg sm:text-xl font-bold text-[#183D2B]">
                   Verified Impact Receipt
                 </h3>
               </div>
               <button
                 onClick={() => setReceiptDonation(null)}
                 aria-label="Close impact receipt"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-white p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
+            <div className="bg-white p-3.5 sm:p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
               <div className="flex justify-between items-center text-[11px] text-[#647C50] font-mono">
                 <span>Receipt: {receiptDonation.impactReceipt.receiptId}</span>
                 <span>{new Date(receiptDonation.impactReceipt.deliveredAt).toLocaleDateString()}</span>
@@ -1476,7 +1647,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setReceiptDonation(null)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
+                className="w-full sm:w-auto min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38] cursor-pointer flex items-center justify-center"
               >
                 Close Receipt
               </button>

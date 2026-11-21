@@ -29,7 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Render role-specific navigation links
   const renderNavLinks = (isMobile = false) => {
     const linkBaseClass = isMobile
-      ? 'w-full text-left py-2.5 px-3 rounded text-sm transition-colors'
+      ? 'w-full text-left py-3 px-3 rounded text-sm transition-colors min-h-[44px] flex items-center'
       : 'whitespace-nowrap transition-colors hover:text-[#183D2B] pb-1 border-b-2 focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none rounded-xs';
 
     const getLinkClass = (viewName: string) => {
@@ -138,7 +138,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-[#F7F6F0]/95 backdrop-blur-md border-b border-[#E2DFD2] transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4 sm:gap-8">
         {/* Zone 1: Brand Wordmark */}
         <button
           onClick={() => {
@@ -147,9 +147,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             else if (currentRole === 'volunteer') onNavigate('volunteer_dashboard');
             else onNavigate('landing');
           }}
-          className="flex items-center gap-2.5 text-left group whitespace-nowrap shrink-0 focus-visible:outline-hidden"
+          className="flex items-center gap-2 sm:gap-2.5 text-left group whitespace-nowrap shrink-0 focus-visible:outline-hidden min-h-[44px]"
         >
-          <svg className="w-8 h-8 text-[#183D2B]" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="w-7 h-7 sm:w-8 h-8 text-[#183D2B] shrink-0" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M8 22C8 14 14 8 22 8C22 16 16 22 8 22Z"
               fill="currentColor"
@@ -162,11 +162,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             />
           </svg>
           <div className="flex flex-col">
-            <span className="font-editorial text-2xl font-bold tracking-tight text-[#183D2B] leading-none">
+            <span className="font-editorial text-xl sm:text-2xl font-bold tracking-tight text-[#183D2B] leading-none">
               FoodBridge
             </span>
             {currentRole !== 'public' && (
-              <span className="text-[10px] uppercase font-mono tracking-wider text-[#647C50] font-semibold mt-0.5">
+              <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-[#647C50] font-semibold mt-0.5 truncate max-w-[170px] sm:max-w-none">
                 {currentRole === 'donor' ? 'Food Donor Portal' : currentRole === 'ngo' ? 'NGO Portal' : 'Delivery Partner Portal'}
               </span>
             )}
@@ -249,7 +249,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="md:hidden flex items-center gap-2">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-[#183D2B] rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-[#183D2B] rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
             aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={mobileMenuOpen}
           >
@@ -260,29 +260,87 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#E2DFD2] bg-[#F7F6F0] px-4 pt-3 pb-6 space-y-1">
-          {renderNavLinks(true)}
-          <div className="pt-3 border-t border-[#E2DFD2] flex flex-col gap-2">
-            {currentRole === 'public' ? (
+        <div className="md:hidden border-t border-[#E2DFD2] bg-[#F7F6F0] px-4 pt-3 pb-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="space-y-1">
+            {renderNavLinks(true)}
+          </div>
+
+          {/* Role-Specific Primary CTA on Mobile */}
+          <div className="pt-2">
+            {currentRole === 'donor' ? (
               <button
-                onClick={() => {
-                  onOpenAuth('signin');
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full text-center py-2.5 text-xs font-semibold border border-[#183D2B] text-[#183D2B] bg-white rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                onClick={() => handleNav('donor_create')}
+                className="w-full min-h-[44px] flex items-center justify-center gap-2 py-3 px-4 text-xs font-semibold text-[#F7F6F0] bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs cursor-pointer"
               >
-                Sign In
+                <span>+ Create Donation</span>
+              </button>
+            ) : currentRole === 'ngo' ? (
+              <button
+                onClick={() => handleNav('ngo_discover')}
+                className="w-full min-h-[44px] flex items-center justify-center gap-2 py-3 px-4 text-xs font-semibold text-[#F7F6F0] bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs cursor-pointer"
+              >
+                <HeartHandshake className="w-4 h-4 text-[#C77A54]" />
+                <span>Discover Surplus</span>
+              </button>
+            ) : currentRole === 'volunteer' ? (
+              <button
+                onClick={() => handleNav('volunteer_available')}
+                className="w-full min-h-[44px] flex items-center justify-center gap-2 py-3 px-4 text-xs font-semibold text-[#F7F6F0] bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs cursor-pointer"
+              >
+                <Truck className="w-4 h-4 text-[#647C50]" />
+                <span>Available Tasks</span>
               </button>
             ) : (
               <button
-                onClick={() => {
-                  onSignOut();
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full text-center py-2.5 text-xs text-[#C77A54] hover:underline font-medium"
+                onClick={() => handleNav('donor_dashboard')}
+                className="w-full min-h-[44px] flex items-center justify-center gap-2 py-3 px-4 text-xs font-semibold text-[#F7F6F0] bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs cursor-pointer"
               >
-                Sign Out ({userName})
+                <span>Donate Surplus</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
+            )}
+          </div>
+
+          <div className="pt-3 border-t border-[#E2DFD2] flex flex-col gap-2">
+            {currentRole === 'public' ? (
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    onOpenAuth('signin');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full min-h-[44px] text-center py-2.5 text-xs font-semibold border border-[#183D2B] text-[#183D2B] bg-white rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => {
+                    onOpenAuth('register');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full min-h-[44px] text-center py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                >
+                  Register
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {userName && (
+                  <div className="flex items-center gap-2 text-xs font-medium text-[#50544C] bg-[#E8EDE2] px-3 py-2 rounded">
+                    <User className="w-4 h-4 text-[#183D2B] shrink-0" />
+                    <span className="font-semibold text-[#183D2B] truncate">{userName}</span>
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    onSignOut();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full min-h-[44px] text-center py-2.5 text-xs text-[#C77A54] hover:bg-amber-50 rounded border border-[#C77A54]/30 font-medium transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
             )}
           </div>
         </div>

@@ -36,10 +36,10 @@ export const ImpactView: React.FC = () => {
         </div>
 
         {/* Data Separation Toggle */}
-        <div className="bg-white p-1 rounded border border-[#E2DFD2] flex items-center gap-1 text-xs self-start md:self-auto shadow-2xs">
+        <div className="bg-white p-1 rounded border border-[#E2DFD2] flex flex-col sm:flex-row items-stretch sm:items-center gap-1 text-xs self-start md:self-auto w-full sm:w-auto shadow-2xs">
           <button
             onClick={() => setViewMode('combined')}
-            className={`px-3 py-1.5 rounded font-medium transition-colors ${
+            className={`px-3 py-2 sm:py-1.5 rounded font-medium transition-colors text-center min-h-[36px] cursor-pointer ${
               viewMode === 'combined' ? 'bg-[#183D2B] text-white shadow-xs' : 'text-[#50544C] hover:text-[#252923]'
             }`}
           >
@@ -47,7 +47,7 @@ export const ImpactView: React.FC = () => {
           </button>
           <button
             onClick={() => setViewMode('session_only')}
-            className={`px-3 py-1.5 rounded font-medium transition-colors ${
+            className={`px-3 py-2 sm:py-1.5 rounded font-medium transition-colors text-center min-h-[36px] cursor-pointer ${
               viewMode === 'session_only' ? 'bg-[#183D2B] text-white shadow-xs' : 'text-[#50544C] hover:text-[#252923]'
             }`}
           >

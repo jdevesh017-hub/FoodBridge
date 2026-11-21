@@ -27,7 +27,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>Food Recovery · Community · Sustainability</span>
             </div>
 
-            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-bold text-[#183D2B] leading-[1.12] tracking-tight text-balance">
+            <h1 className="font-editorial text-3xl sm:text-5xl lg:text-6xl font-bold text-[#183D2B] leading-[1.12] tracking-tight text-balance">
               Good food deserves a <span className="italic font-normal text-[#C77A54]">second chance</span>.
             </h1>
 
@@ -40,7 +40,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <button
                 onClick={() => onNavigate('donor_dashboard')}
-                className="flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-all rounded shadow-xs focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-all rounded shadow-xs focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none min-h-[44px] cursor-pointer"
               >
                 <span>Donate Surplus Food</span>
                 <ArrowRight className="w-4 h-4" />
@@ -55,21 +55,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     onNavigate('how_it_works');
                   }
                 }}
-                className="flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-medium text-[#183D2B] hover:bg-[#E8EDE2] transition-colors rounded border border-[#183D2B]/30 focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-medium text-[#183D2B] hover:bg-[#E8EDE2] transition-colors rounded border border-[#183D2B]/30 focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none min-h-[44px] cursor-pointer"
               >
                 <span>Explore How It Works</span>
               </button>
             </div>
 
             {/* Quiet Trust Marker */}
-            <div className="pt-4 flex items-center gap-6 text-xs text-[#50544C]">
+            <div className="pt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#50544C]">
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#647C50]" />
+                <ShieldCheck className="w-4 h-4 text-[#647C50] shrink-0" />
                 FSSAI Guideline Compliant
               </span>
-              <span>·</span>
+              <span className="hidden sm:inline">·</span>
               <span>Zero Commercially Sold Waste</span>
-              <span>·</span>
+              <span className="hidden sm:inline">·</span>
               <span>Free for Community Kitchens</span>
             </div>
           </div>
@@ -151,9 +151,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Demonstration Notice */}
-          <div className="pt-2 flex items-center justify-between text-[11px] text-[#737373] border-t border-[#E2DFD2]">
+          <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-[#737373] border-t border-[#E2DFD2]">
             <span>* Baseline pilot demonstration metrics. Live session rescues are tracked separately.</span>
-            <button onClick={() => onNavigate('impact')} className="text-[#183D2B] hover:underline font-medium">
+            <button onClick={() => onNavigate('impact')} className="text-[#183D2B] hover:underline font-medium text-left sm:text-right cursor-pointer">
               View Detailed Impact Accounting →
             </button>
           </div>

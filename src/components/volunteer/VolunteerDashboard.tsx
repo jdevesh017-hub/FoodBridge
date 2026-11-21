@@ -48,6 +48,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'available' | 'active' | 'history'>(initialTab);
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
+  const [mobileAvailableView, setMobileAvailableView] = useState<'tasks' | 'map'>('tasks');
 
   // Modal states for exception handling & pickup verification
   const [showCancelModal, setShowCancelModal] = useState<FoodDonation | null>(null);
@@ -227,10 +228,10 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
         {/* View Switcher Tabs */}
         <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-          <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded">
+          <div className="flex items-center gap-1 bg-[#E8EDE2] p-1 rounded overflow-x-auto no-scrollbar w-full sm:w-auto">
             <button
               onClick={() => handleTabSelect('overview')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors whitespace-nowrap min-h-[36px] ${
                 activeTab === 'overview' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
@@ -238,7 +239,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
             </button>
             <button
               onClick={() => handleTabSelect('available')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors whitespace-nowrap min-h-[36px] ${
                 activeTab === 'available' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
@@ -246,7 +247,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
             </button>
             <button
               onClick={() => handleTabSelect('active')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors whitespace-nowrap min-h-[36px] ${
                 activeTab === 'active' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
@@ -254,7 +255,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
             </button>
             <button
               onClick={() => handleTabSelect('history')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors whitespace-nowrap min-h-[36px] ${
                 activeTab === 'history' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C] hover:text-[#252923]'
               }`}
             >
@@ -270,32 +271,32 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
       {activeTab === 'overview' && (
         <div className="space-y-8">
           {/* Volunteer KPI Strip */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Active Delivery Mission</p>
-              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
+              <p className="font-editorial text-2xl sm:text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
                 {activeRun ? '1 Active' : '0 Idle'}
               </p>
               <p className="text-[11px] text-[#50544C] mt-1">{activeRun ? 'Live run in progress' : 'Ready for assignment'}</p>
             </div>
 
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Available Runs Nearby</p>
-              <p className="font-editorial text-3xl font-bold text-[#C77A54] tabular-nums mt-1">{availableTasks.length}</p>
+              <p className="font-editorial text-2xl sm:text-3xl font-bold text-[#C77A54] tabular-nums mt-1">{availableTasks.length}</p>
               <p className="text-[11px] text-[#50544C] mt-1">Within 15 km radius</p>
             </div>
 
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Total Food Transported</p>
-              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
+              <p className="font-editorial text-2xl sm:text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
                 {Math.round(totalKgTransported)} <span className="text-sm font-sans font-normal text-[#50544C]">kg</span>
               </p>
               <p className="text-[11px] text-[#50544C] mt-1">Safely carried in thermal containers</p>
             </div>
 
-            <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
+            <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Total Completed Runs</p>
-              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">{deliveryHistory.length}</p>
+              <p className="font-editorial text-2xl sm:text-3xl font-bold text-[#183D2B] tabular-nums mt-1">{deliveryHistory.length}</p>
               <p className="text-[11px] text-[#50544C] mt-1">~{totalMealsDelivered} community meals</p>
             </div>
           </div>
@@ -470,122 +471,147 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           PAGE 2: AVAILABLE TASKS TAB (DISPATCH POOL + MAP)
           ============================================================ */}
       {activeTab === 'available' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left: Task List */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="bg-white p-4 rounded-lg border border-[#E2DFD2] shadow-xs flex items-center justify-between text-xs">
-              <span className="font-semibold text-[#183D2B] flex items-center gap-1.5">
-                <Navigation className="w-3.5 h-3.5 text-[#647C50]" />
-                Nearby Community Collection Runs
-              </span>
-              <span className="text-[#50544C] font-mono tabular-nums">
-                {availableTasks.length} runs ready for pickup
-              </span>
-            </div>
+        <>
+          {/* Mobile View Switcher (Tasks vs Map) */}
+          <div className="flex lg:hidden items-center justify-center p-1 bg-[#E8EDE2] rounded mb-4 w-full">
+            <button
+              type="button"
+              onClick={() => setMobileAvailableView('tasks')}
+              className={`flex-1 py-2 text-xs font-semibold rounded text-center transition-colors min-h-[38px] ${
+                mobileAvailableView === 'tasks' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C]'
+              }`}
+            >
+              Task List ({availableTasks.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileAvailableView('map')}
+              className={`flex-1 py-2 text-xs font-semibold rounded text-center transition-colors min-h-[38px] flex items-center justify-center gap-1.5 ${
+                mobileAvailableView === 'map' ? 'bg-white text-[#183D2B] shadow-2xs' : 'text-[#50544C]'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Map View</span>
+            </button>
+          </div>
 
-            {availableTasks.length === 0 ? (
-              <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-2">
-                <CheckCircle2 className="w-8 h-8 text-[#647C50] mx-auto opacity-75" />
-                <p className="font-editorial text-lg text-[#50544C]">All current surplus runs have been assigned.</p>
-                <p className="text-xs text-[#737373]">New banquet surpluses are typically logged after 14:00 and 21:00.</p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left: Task List */}
+            <div className={`lg:col-span-7 space-y-4 ${mobileAvailableView === 'map' ? 'hidden lg:block' : 'block'}`}>
+              <div className="bg-white p-3.5 sm:p-4 rounded-lg border border-[#E2DFD2] shadow-xs flex items-center justify-between text-xs">
+                <span className="font-semibold text-[#183D2B] flex items-center gap-1.5">
+                  <Navigation className="w-3.5 h-3.5 text-[#647C50]" />
+                  Nearby Community Collection Runs
+                </span>
+                <span className="text-[#50544C] font-mono tabular-nums">
+                  {availableTasks.length} runs ready
+                </span>
               </div>
-            ) : (
-              availableTasks.map((task) => {
-                const effectiveKg = task.quantity.pickupConfirmedKg || task.quantity.measuredKg || task.quantity.donorEstimatedKg;
-                const isSelected = selectedTaskId === task.id;
 
-                return (
-                  <div
-                    key={task.id}
-                    onClick={() => setSelectedTaskId(task.id)}
-                    className={`bg-white rounded-lg border p-5 transition-all cursor-pointer shadow-xs ${
-                      isSelected ? 'border-[#183D2B] ring-1 ring-[#183D2B]' : 'border-[#E2DFD2] hover:border-[#647C50]'
-                    }`}
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          {task.status === 'volunteer_cancelled' && (
-                            <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-white bg-[#C77A54] px-2 py-0.5 rounded mb-1">
-                              Urgent Reassignment Needed
-                            </span>
-                          )}
-                          <p className="text-[11px] font-semibold uppercase tracking-wider text-[#647C50]">
-                            {task.distanceKm} km away · {task.donorType}
-                          </p>
-                          <h3 className="font-editorial text-lg font-bold text-[#183D2B] leading-tight">
-                            {task.foodName}
-                          </h3>
+              {availableTasks.length === 0 ? (
+                <div className="bg-white p-8 sm:p-12 rounded-lg border border-[#E2DFD2] text-center space-y-2">
+                  <CheckCircle2 className="w-8 h-8 text-[#647C50] mx-auto opacity-75" />
+                  <p className="font-editorial text-lg text-[#50544C]">All current surplus runs have been assigned.</p>
+                  <p className="text-xs text-[#737373]">New banquet surpluses are typically logged after 14:00 and 21:00.</p>
+                </div>
+              ) : (
+                availableTasks.map((task) => {
+                  const effectiveKg = task.quantity.pickupConfirmedKg || task.quantity.measuredKg || task.quantity.donorEstimatedKg;
+                  const isSelected = selectedTaskId === task.id;
+
+                  return (
+                    <div
+                      key={task.id}
+                      onClick={() => setSelectedTaskId(task.id)}
+                      className={`bg-white rounded-lg border p-4 sm:p-5 transition-all cursor-pointer shadow-xs ${
+                        isSelected ? 'border-[#183D2B] ring-1 ring-[#183D2B]' : 'border-[#E2DFD2] hover:border-[#647C50]'
+                      }`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            {task.status === 'volunteer_cancelled' && (
+                              <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-white bg-[#C77A54] px-2 py-0.5 rounded mb-1">
+                                Urgent Reassignment Needed
+                              </span>
+                            )}
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#647C50]">
+                              {task.distanceKm} km away · {task.donorType}
+                            </p>
+                            <h3 className="font-editorial text-base sm:text-lg font-bold text-[#183D2B] leading-tight">
+                              {task.foodName}
+                            </h3>
+                          </div>
+
+                          <div className="text-right font-mono tabular-nums shrink-0">
+                            <p className="font-bold text-[#183D2B] text-sm sm:text-base">{effectiveKg} kg</p>
+                            <p className="text-[10px] text-[#50544C] font-sans">~{task.quantity.servingsEstimate} meals</p>
+                          </div>
                         </div>
 
-                        <div className="text-right font-mono tabular-nums">
-                          <p className="font-bold text-[#183D2B] text-sm">{effectiveKg} kg</p>
-                          <p className="text-[10px] text-[#50544C] font-sans">~{task.quantity.servingsEstimate} meals</p>
+                        {/* Route Summary */}
+                        <div className="p-3 bg-[#F7F6F0] rounded border border-[#E2DFD2] space-y-1.5 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-[#183D2B] shrink-0" />
+                            <span className="font-medium text-[#252923] shrink-0">Pickup:</span>
+                            <span className="text-[#50544C] truncate">{task.donorName} ({task.donorAddress})</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-[#C77A54] shrink-0" />
+                            <span className="font-medium text-[#252923] shrink-0">Deliver To:</span>
+                            <span className="text-[#50544C] truncate">{task.reservedByNgoName || 'Reserved Community Kitchen'}</span>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Route Summary */}
-                      <div className="p-3 bg-[#F7F6F0] rounded border border-[#E2DFD2] space-y-1.5 text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-[#183D2B]" />
-                          <span className="font-medium text-[#252923]">Pickup:</span>
-                          <span className="text-[#50544C] truncate">{task.donorName} ({task.donorAddress})</span>
+                        {/* Actions */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onViewSafetyAudit(task);
+                            }}
+                            className="text-xs text-[#647C50] hover:text-[#183D2B] underline text-left sm:text-center py-1 cursor-pointer"
+                          >
+                            View FSSAI Handling Rules
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAcceptTask(task);
+                            }}
+                            className="min-h-[44px] sm:min-h-[38px] px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer flex items-center justify-center"
+                          >
+                            Accept Assignment
+                          </button>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-[#C77A54]" />
-                          <span className="font-medium text-[#252923]">Deliver To:</span>
-                          <span className="text-[#50544C] truncate">{task.reservedByNgoName || 'Reserved Community Kitchen'}</span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center justify-between pt-1">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onViewSafetyAudit(task);
-                          }}
-                          className="text-xs text-[#647C50] hover:text-[#183D2B] underline"
-                        >
-                          View FSSAI Handling Rules
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAcceptTask(task);
-                          }}
-                          className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs cursor-pointer"
-                        >
-                          Accept Assignment
-                        </button>
                       </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Right: Map view */}
-          <div className="lg:col-span-5 sticky top-28 space-y-3">
-            <div className="h-[520px] w-full">
-              <React.Suspense fallback={<MapFallback />}>
-                <LeafletMap
-                  donations={availableTasks}
-                  selectedDonationId={selectedTaskId}
-                  onSelectDonation={(id) => setSelectedTaskId(id)}
-                  showRouteForDonation={displayedDonation}
-                />
-              </React.Suspense>
+                  );
+                })
+              )}
             </div>
-            <p className="text-[11px] text-[#50544C] text-center">
-              Routes connect donor kitchen to designated community shelter.
-            </p>
+
+            {/* Right: Map view */}
+            <div className={`lg:col-span-5 lg:sticky lg:top-28 space-y-3 ${mobileAvailableView === 'tasks' ? 'hidden lg:block' : 'block'}`}>
+              <div className="h-[380px] sm:h-[460px] lg:h-[520px] w-full">
+                <React.Suspense fallback={<MapFallback />}>
+                  <LeafletMap
+                    donations={availableTasks}
+                    selectedDonationId={selectedTaskId}
+                    onSelectDonation={(id) => setSelectedTaskId(id)}
+                    showRouteForDonation={displayedDonation}
+                  />
+                </React.Suspense>
+              </div>
+              <p className="text-[11px] text-[#50544C] text-center">
+                Routes connect donor kitchen to designated community shelter.
+              </p>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* ============================================================
@@ -609,14 +635,14 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Active Task Card */}
-              <div className="lg:col-span-7 bg-white rounded-lg border border-[#E2DFD2] p-6 space-y-6 shadow-xs">
+              <div className="lg:col-span-7 bg-white rounded-lg border border-[#E2DFD2] p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-xs">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3 border-b border-[#E2DFD2] pb-4">
                   <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-[#C77A54]">
                       Active Live Mission
                     </span>
-                    <h2 className="font-editorial text-2xl font-bold text-[#183D2B] mt-0.5">
+                    <h2 className="font-editorial text-xl sm:text-2xl font-bold text-[#183D2B] mt-0.5">
                       {activeRun.foodName}
                     </h2>
                     <p className="text-xs text-[#50544C] mt-0.5">
@@ -624,7 +650,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                     </p>
                   </div>
 
-                  <span className="text-xs font-semibold px-3 py-1 bg-[#183D2B] text-white rounded uppercase font-mono">
+                  <span className="text-xs font-semibold px-2.5 sm:px-3 py-1 bg-[#183D2B] text-white rounded uppercase font-mono shrink-0">
                     {activeRun.status.replace(/_/g, ' ')}
                   </span>
                 </div>
@@ -635,7 +661,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                     Courier Dispatch Sequence
                   </p>
 
-                  <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
                     {/* Stage 1 */}
                     <div className="p-2.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-900 font-semibold">
                       <p className="text-[10px] text-emerald-700">Step 1</p>
@@ -681,10 +707,10 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                 </div>
 
                 {/* Waypoint Details */}
-                <div className="space-y-3 bg-[#F7F6F0] p-4 rounded border border-[#E2DFD2] text-xs">
+                <div className="space-y-3 bg-[#F7F6F0] p-3.5 sm:p-4 rounded border border-[#E2DFD2] text-xs">
                   <div className="space-y-1">
                     <p className="font-semibold text-[#183D2B] flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#183D2B]" />
+                      <MapPin className="w-3.5 h-3.5 text-[#183D2B] shrink-0" />
                       Collection Waypoint:
                     </p>
                     <p className="text-[#252923] pl-5">{activeRun.donorAddress}</p>
@@ -695,7 +721,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
                   <div className="space-y-1 pt-2 border-t border-[#E2DFD2]">
                     <p className="font-semibold text-[#C77A54] flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#C77A54]" />
+                      <MapPin className="w-3.5 h-3.5 text-[#C77A54] shrink-0" />
                       Delivery Waypoint:
                     </p>
                     <p className="text-[#252923] pl-5">
@@ -709,7 +735,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                   {activeRun.status === 'assigned' && (
                     <button
                       onClick={() => handleConfirmArrival(activeRun.id)}
-                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full min-h-[44px] py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Confirm Arrival at Donor Kitchen</span>
@@ -724,7 +750,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                           String(activeRun.quantity.measuredKg || activeRun.quantity.donorEstimatedKg)
                         );
                       }}
-                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full min-h-[44px] py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <ShieldCheck className="w-4 h-4" />
                       <span>Verify Thermal Condition & Confirm Pickup</span>
@@ -736,7 +762,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                       onClick={() => {
                         setShowArrivalAtNgoModal(activeRun);
                       }}
-                      className="w-full py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full min-h-[44px] py-3 text-sm font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] transition-colors rounded shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Truck className="w-4 h-4" />
                       <span>Confirm Arrival at NGO Shelter</span>
@@ -756,11 +782,11 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                   )}
 
                   {/* Exception actions */}
-                  <div className="flex items-center justify-between text-xs pt-2 border-t border-[#E2DFD2]">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 text-xs pt-2 border-t border-[#E2DFD2]">
                     {['assigned', 'arrived_at_donor'].includes(activeRun.status) ? (
                       <button
                         onClick={() => setShowCancelModal(activeRun)}
-                        className="text-[#50544C] hover:text-[#C77A54] underline cursor-pointer"
+                        className="text-[#50544C] hover:text-[#C77A54] underline cursor-pointer text-left sm:text-center py-1"
                       >
                         Cancel Run (Release for Reassignment)
                       </button>
@@ -770,7 +796,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
                     <button
                       onClick={() => setShowFailedModal(activeRun)}
-                      className="text-[#C77A54] hover:underline cursor-pointer"
+                      className="text-[#C77A54] hover:underline cursor-pointer text-left sm:text-center py-1"
                     >
                       Report Incident / Failed Pickup
                     </button>
@@ -779,7 +805,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
               </div>
 
               {/* Right: Active Route Map */}
-              <div className="lg:col-span-5 h-[480px]">
+              <div className="lg:col-span-5 h-[340px] sm:h-[420px] lg:h-[480px]">
                 <React.Suspense fallback={<MapFallback />}>
                   <LeafletMap
                     donations={[activeRun]}
@@ -857,15 +883,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           onClose={() => setShowArrivalAtNgoModal(null)}
           aria-labelledby="arrival-ngo-modal-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
-              <h3 id="arrival-ngo-modal-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+              <h3 id="arrival-ngo-modal-title" className="font-editorial text-lg sm:text-xl font-bold text-[#183D2B]">
                 Handover at NGO Facility
               </h3>
               <button
                 onClick={() => setShowArrivalAtNgoModal(null)}
                 aria-label="Close dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -885,21 +911,21 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                   required
                   value={arrivalNotesInput}
                   onChange={(e) => setArrivalNotesInput(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2.5 sm:py-2 text-base sm:text-xs bg-white border border-[#E2DFD2] rounded"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowArrivalAtNgoModal(null)}
-                  className="px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923]"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded cursor-pointer"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded cursor-pointer flex items-center justify-center"
                 >
                   Confirm Delivery Handover
                 </button>
@@ -916,15 +942,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           onClose={() => setShowPickupModal(null)}
           aria-labelledby="pickup-modal-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
-              <h3 id="pickup-modal-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+              <h3 id="pickup-modal-title" className="font-editorial text-lg sm:text-xl font-bold text-[#183D2B]">
                 Verify Pickup Quantity & Seals
               </h3>
               <button
                 onClick={() => setShowPickupModal(null)}
                 aria-label="Close dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -945,7 +971,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                   required
                   value={verifiedWeightInput}
                   onChange={(e) => setVerifiedWeightInput(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded font-mono font-bold"
+                  className="w-full px-3 py-2.5 sm:py-2 bg-white border border-[#E2DFD2] rounded font-mono font-bold text-base sm:text-sm"
                 />
                 <p className="text-[11px] text-[#647C50] mt-1">
                   Donor Estimated: {showPickupModal.quantity.donorEstimatedKg} kg
@@ -954,7 +980,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
 
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-emerald-900 space-y-1">
                 <p className="font-semibold flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-800" />
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-800 shrink-0" />
                   Thermal Carrier Check
                 </p>
                 <p className="text-[11px] text-emerald-800">
@@ -962,17 +988,17 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                 </p>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowPickupModal(null)}
-                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded cursor-pointer"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded cursor-pointer flex items-center justify-center"
                 >
                   Confirm Pickup & Start Transit
                 </button>
@@ -989,15 +1015,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           onClose={() => setShowCancelModal(null)}
           aria-labelledby="cancel-assignment-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
-              <h3 id="cancel-assignment-title" className="font-editorial text-xl font-bold text-red-800">
+              <h3 id="cancel-assignment-title" className="font-editorial text-lg sm:text-xl font-bold text-red-800">
                 Release Mission Assignment
               </h3>
               <button
                 onClick={() => setShowCancelModal(null)}
                 aria-label="Close dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1015,7 +1041,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                 <select
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2.5 sm:py-2 bg-white border border-[#E2DFD2] rounded text-base sm:text-xs"
                 >
                   <option value="Vehicle mechanical issue">Vehicle mechanical issue</option>
                   <option value="Severe traffic / transit gridlock">Severe traffic / transit gridlock</option>
@@ -1024,17 +1050,17 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCancelModal(null)}
-                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
                 >
                   Keep Mission
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 font-semibold text-white bg-red-800 hover:bg-red-900 rounded cursor-pointer"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 font-semibold text-white bg-red-800 hover:bg-red-900 rounded cursor-pointer flex items-center justify-center"
                 >
                   Release to Other Couriers
                 </button>
@@ -1051,15 +1077,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           onClose={() => setShowFailedModal(null)}
           aria-labelledby="failed-pickup-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
-              <h3 id="failed-pickup-title" className="font-editorial text-xl font-bold text-amber-800">
+              <h3 id="failed-pickup-title" className="font-editorial text-lg sm:text-xl font-bold text-amber-800">
                 Report Collection Incident
               </h3>
               <button
                 onClick={() => setShowFailedModal(null)}
                 aria-label="Close dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1078,7 +1104,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                 <select
                   value={failedReason}
                   onChange={(e) => setFailedReason(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2.5 sm:py-2 bg-white border border-[#E2DFD2] rounded text-base sm:text-xs"
                 >
                   <option value="Donor premises closed / unresponsive">Donor premises closed / unresponsive</option>
                   <option value="Food already disposed or unavailable on site">Food already disposed or unavailable on site</option>
@@ -1087,17 +1113,17 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowFailedModal(null)}
-                  className="px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923]"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 font-semibold text-white bg-amber-800 hover:bg-amber-900 rounded cursor-pointer"
+                  className="min-h-[44px] sm:min-h-[38px] px-4 py-2 font-semibold text-white bg-amber-800 hover:bg-amber-900 rounded cursor-pointer flex items-center justify-center"
                 >
                   Log Incident
                 </button>
@@ -1114,24 +1140,24 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           onClose={() => setReceiptDonation(null)}
           aria-labelledby="receipt-dialog-title"
         >
-          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-5">
+          <div className="bg-[#F7F6F0] rounded-xl max-w-lg w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#183D2B]" />
-                <h3 id="receipt-dialog-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+                <h3 id="receipt-dialog-title" className="font-editorial text-lg sm:text-xl font-bold text-[#183D2B]">
                   Verified Impact Certificate
                 </h3>
               </div>
               <button
                 onClick={() => setReceiptDonation(null)}
                 aria-label="Close certificate"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-white p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
+            <div className="bg-white p-3.5 sm:p-4 rounded border border-[#E2DFD2] space-y-3 text-xs">
               <div className="flex justify-between items-center text-[11px] text-[#647C50] font-mono">
                 <span>Receipt: {receiptDonation.impactReceipt.receiptId}</span>
                 <span>{new Date(receiptDonation.impactReceipt.deliveredAt).toLocaleDateString()}</span>
@@ -1163,7 +1189,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setReceiptDonation(null)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
+                className="w-full sm:w-auto min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38] cursor-pointer flex items-center justify-center"
               >
                 Close Certificate
               </button>

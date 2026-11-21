@@ -567,13 +567,13 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
             </div>
 
             {/* Vertical column bars */}
-            <div className="grid grid-cols-7 gap-2 pt-6 items-end h-44">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2 pt-6 items-end h-44">
               {weekdayDistribution.map((w) => {
                 const maxKg = Math.max(...weekdayDistribution.map((i) => i.recordedKg), 1);
                 const heightPct = Math.round((w.recordedKg / maxKg) * 100);
                 return (
                   <div key={w.day} className="flex flex-col items-center gap-1.5 h-full justify-end">
-                    <span className="font-mono text-[10px] tabular-nums text-[#50544C]">
+                    <span className="font-mono text-[9px] sm:text-[10px] tabular-nums text-[#50544C]">
                       {w.recordedKg > 0 ? `${w.recordedKg}k` : '0'}
                     </span>
                     <div
@@ -583,7 +583,7 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
                       style={{ height: `${Math.max(heightPct, 4)}%` }}
                       title={`${w.day}: ${w.recordedKg} kg (${w.count} events)`}
                     />
-                    <span className="text-xs font-semibold text-[#252923]">{w.day}</span>
+                    <span className="text-[10px] sm:text-xs font-semibold text-[#252923]">{w.day}</span>
                   </div>
                 );
               })}
@@ -811,12 +811,12 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
         >
           <form
             onSubmit={handleCreateDemand}
-            className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-6 space-y-4"
+            className="bg-[#F7F6F0] rounded-xl max-w-md w-full border border-[#E2DFD2] shadow-2xl p-4 sm:p-6 space-y-4"
           >
             <div className="flex items-center justify-between border-b border-[#E2DFD2] pb-3">
               <div className="flex items-center gap-2 text-[#183D2B]">
-                <HeartHandshake className="w-5 h-5 text-[#C77A54]" />
-                <h3 id="demand-modal-title" className="font-editorial text-xl font-bold">
+                <HeartHandshake className="w-5 h-5 text-[#C77A54] shrink-0" />
+                <h3 id="demand-modal-title" className="font-editorial text-lg sm:text-xl font-bold">
                   Register Shelter Food Demand
                 </h3>
               </div>
@@ -824,7 +824,7 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
                 type="button"
                 onClick={() => setShowDemandModal(false)}
                 aria-label="Close demand dialog"
-                className="text-[#50544C] hover:text-[#252923] p-1 rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="text-[#50544C] hover:text-[#252923] p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -834,7 +834,7 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
               Specify your facility's daily intake requirements. This establishes our live supply vs. demand balance index.
             </p>
 
-            <div className="space-y-3 bg-white p-4 rounded border border-[#E2DFD2] text-xs">
+            <div className="space-y-3 bg-white p-3.5 sm:p-4 rounded border border-[#E2DFD2] text-xs">
               <div>
                 <label className="block text-xs font-semibold text-[#252923] mb-1">
                   Food Category Needed *
@@ -842,7 +842,7 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
                 <select
                   value={demandCategory}
                   onChange={(e) => setDemandCategory(e.target.value as FoodCategory)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
                 >
                   <option value="prepared_meals">Cooked Prepared Meals (Hot/Chilled)</option>
                   <option value="bakery_grains">Bakery & Grains (Loaves, Buns)</option>
@@ -864,7 +864,7 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
                   required
                   value={demandDailyKg}
                   onChange={(e) => setDemandDailyKg(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono font-bold"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono font-bold"
                 />
                 <p className="text-[10px] text-[#647C50] mt-0.5">
                   Meal Equivalents: ~{Math.round(demandDailyKg / MEAL_PORTION_KG)} portions/day
@@ -878,7 +878,7 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
                 <select
                   value={demandUrgency}
                   onChange={(e) => setDemandUrgency(e.target.value as any)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
                 >
                   <option value="high">High (Immediate pantry deficit)</option>
                   <option value="medium">Medium (Regular planned service)</option>
@@ -895,22 +895,22 @@ export const WasteIntelligenceDashboard: React.FC<WasteIntelligenceDashboardProp
                   placeholder="e.g. Vegetarian only, senior dining lunch service by 12:30"
                   value={demandNotes}
                   onChange={(e) => setDemandNotes(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2 border-t border-[#E2DFD2]">
               <button
                 type="button"
                 onClick={() => setShowDemandModal(false)}
-                className="px-4 py-2 text-xs text-[#50544C]"
+                className="min-h-[44px] sm:min-h-[38px] px-4 py-2 text-xs font-semibold text-[#50544C] hover:text-[#252923] rounded flex items-center justify-center cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38] shadow-xs"
+                className="min-h-[44px] sm:min-h-[38px] px-5 py-2 text-xs font-semibold text-white bg-[#183D2B] rounded hover:bg-[#254F38] shadow-xs cursor-pointer flex items-center justify-center"
               >
                 Save Demand Target
               </button>

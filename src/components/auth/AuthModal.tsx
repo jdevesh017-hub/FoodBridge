@@ -157,7 +157,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs"
     >
       <div className="bg-[#F7F6F0] rounded-xl max-w-4xl w-full border border-[#E2DFD2] shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12 max-h-[92vh]">
         {/* Left Side: Authentic Photography & Story */}
@@ -179,12 +179,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         {/* Right Side: Auth & Registration Form */}
-        <div className="md:col-span-7 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto max-h-[90vh]">
-          <div className="space-y-6">
+        <div className="md:col-span-7 p-4 sm:p-8 flex flex-col justify-between overflow-y-auto max-h-[90vh]">
+          <div className="space-y-5 sm:space-y-6">
             {/* Top Bar with Close button */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h2 id="auth-modal-title" className="font-editorial text-xl font-bold text-[#183D2B]">
+                <h2 id="auth-modal-title" className="font-editorial text-lg sm:text-xl font-bold text-[#183D2B]">
                   FoodBridge
                 </h2>
                 <span className="text-xs text-[#50544C]">· Member Access</span>
@@ -192,17 +192,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 onClick={onClose}
                 aria-label="Close authentication modal"
-                className="p-1 text-[#50544C] hover:text-[#252923] rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+                className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center text-[#50544C] hover:text-[#252923] rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Tab Switcher: Sign In vs Register */}
-            <div className="flex border-b border-[#E2DFD2] text-xs font-semibold">
+            <div className="flex border-b border-[#E2DFD2] text-xs font-semibold overflow-x-auto no-scrollbar">
               <button
                 onClick={() => setTab('signin')}
-                className={`pb-2.5 px-4 transition-colors ${
+                className={`pb-2.5 px-3 sm:px-4 transition-colors whitespace-nowrap min-h-[36px] cursor-pointer ${
                   tab === 'signin' ? 'border-b-2 border-[#183D2B] text-[#183D2B]' : 'text-[#737373]'
                 }`}
               >
@@ -210,7 +210,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
               <button
                 onClick={() => setTab('register')}
-                className={`pb-2.5 px-4 transition-colors ${
+                className={`pb-2.5 px-3 sm:px-4 transition-colors whitespace-nowrap min-h-[36px] cursor-pointer ${
                   tab === 'register' ? 'border-b-2 border-[#183D2B] text-[#183D2B]' : 'text-[#737373]'
                 }`}
               >
@@ -228,7 +228,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedRole('donor')}
-                    className={`p-2.5 rounded border text-left flex flex-col gap-1 transition-all ${
+                    className={`p-2.5 rounded border text-left flex flex-col gap-1 transition-all cursor-pointer ${
                       selectedRole === 'donor'
                         ? 'border-[#183D2B] bg-[#E8EDE2] text-[#183D2B] font-semibold ring-1 ring-[#183D2B]'
                         : 'border-[#E2DFD2] bg-white text-[#50544C] hover:bg-[#F7F6F0]'
@@ -241,7 +241,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedRole('ngo')}
-                    className={`p-2.5 rounded border text-left flex flex-col gap-1 transition-all ${
+                    className={`p-2.5 rounded border text-left flex flex-col gap-1 transition-all cursor-pointer ${
                       selectedRole === 'ngo'
                         ? 'border-[#183D2B] bg-[#E8EDE2] text-[#183D2B] font-semibold ring-1 ring-[#183D2B]'
                         : 'border-[#E2DFD2] bg-white text-[#50544C] hover:bg-[#F7F6F0]'
@@ -254,7 +254,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedRole('volunteer')}
-                    className={`p-2.5 rounded border text-left flex flex-col gap-1 transition-all ${
+                    className={`p-2.5 rounded border text-left flex flex-col gap-1 transition-all cursor-pointer ${
                       selectedRole === 'volunteer'
                         ? 'border-[#183D2B] bg-[#E8EDE2] text-[#183D2B] font-semibold ring-1 ring-[#183D2B]'
                         : 'border-[#E2DFD2] bg-white text-[#50544C] hover:bg-[#F7F6F0]'
@@ -287,7 +287,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="e.g. chef.marcus@grandmeridian.com or your registered email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3.5 py-2 text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
                   />
                 </div>
 
@@ -300,13 +300,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="•••••••• (Mock prototype)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3.5 py-2 text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 sm:py-2 text-base sm:text-sm bg-white border border-[#E2DFD2] rounded focus:border-[#183D2B] focus:outline-hidden"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs"
+                  className="w-full min-h-[44px] py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs cursor-pointer flex items-center justify-center"
                 >
                   Sign In to Registered Account
                 </button>
@@ -324,7 +324,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleQuickPersona('donor')}
-                        className="p-2 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors"
+                        className="p-2.5 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors min-h-[40px] cursor-pointer"
                       >
                         <div>
                           <span className="font-medium">Chef Marcus</span>
@@ -335,7 +335,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleQuickPersona('ngo')}
-                        className="p-2 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors"
+                        className="p-2.5 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors min-h-[40px] cursor-pointer"
                       >
                         <div>
                           <span className="font-medium">Sister Teresa</span>
@@ -346,7 +346,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleQuickPersona('volunteer')}
-                        className="p-2 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors"
+                        className="p-2.5 bg-white rounded border border-[#E2DFD2] hover:border-[#183D2B] text-left text-[#252923] flex items-center justify-between transition-colors min-h-[40px] cursor-pointer"
                       >
                         <div>
                           <span className="font-medium">Alex Rivera</span>
@@ -379,7 +379,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder="e.g. Elena Rostova"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-[#E2DFD2] rounded"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-white border border-[#E2DFD2] rounded"
                     />
                   </div>
 
@@ -393,7 +393,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder="+91 98200 00000"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-[#E2DFD2] rounded"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-white border border-[#E2DFD2] rounded"
                     />
                   </div>
                 </div>
@@ -409,7 +409,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder={selectedRole === 'donor' ? 'e.g. Artisan Breadworks & Bistro' : 'e.g. St. Jude Food Shelter'}
                       value={organizationName}
                       onChange={(e) => setOrganizationName(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-[#E2DFD2] rounded"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-white border border-[#E2DFD2] rounded"
                     />
                   </div>
                 )}
@@ -422,7 +422,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <select
                       value={organizationType}
                       onChange={(e) => setOrganizationType(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-[#E2DFD2] rounded"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-white border border-[#E2DFD2] rounded"
                     >
                       <option value="hotel">Hotel & Banqueting</option>
                       <option value="restaurant">Commercial Restaurant / Café</option>
@@ -444,7 +444,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder="e.g. NGO-MH-2024-00123"
                       value={ngoRegNo}
                       onChange={(e) => setNgoRegNo(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-[#E2DFD2] rounded"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-white border border-[#E2DFD2] rounded"
                     />
                   </div>
                 )}
@@ -459,7 +459,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="contact@entity.org"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs bg-white border border-[#E2DFD2] rounded"
+                    className="w-full px-3 py-2 text-base sm:text-xs bg-white border border-[#E2DFD2] rounded"
                   />
                 </div>
 
@@ -474,7 +474,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       type="button"
                       onClick={handleGetCurrentLocation}
                       disabled={isLocating}
-                      className="text-[11px] text-[#183D2B] hover:text-[#254F38] font-medium underline flex items-center gap-1"
+                      className="text-[11px] text-[#183D2B] hover:text-[#254F38] font-medium underline flex items-center gap-1 cursor-pointer"
                     >
                       {isLocating ? 'Detecting GPS...' : 'Use Browser GPS'}
                     </button>
@@ -487,7 +487,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder="Street, District, Ward, City"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded"
                     />
                   </div>
 
@@ -502,7 +502,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           key={preset.label}
                           type="button"
                           onClick={() => handlePresetSelect(preset)}
-                          className="px-2 py-0.5 text-[10px] bg-[#F7F6F0] hover:bg-[#E8EDE2] text-[#252923] border border-[#E2DFD2] rounded transition-colors"
+                          className="min-h-[30px] px-2.5 py-1 text-[11px] bg-[#F7F6F0] hover:bg-[#E8EDE2] text-[#252923] border border-[#E2DFD2] rounded transition-colors cursor-pointer"
                         >
                           {preset.label}
                         </button>
@@ -523,7 +523,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         placeholder="e.g. 19.0760"
                         value={lat}
                         onChange={(e) => setLat(e.target.value)}
-                        className="w-full px-2.5 py-1 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
+                        className="w-full px-2.5 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
                       />
                     </div>
                     <div>
@@ -537,7 +537,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         placeholder="e.g. 72.8777"
                         value={lng}
                         onChange={(e) => setLng(e.target.value)}
-                        className="w-full px-2.5 py-1 text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
+                        className="w-full px-2.5 py-2 text-base sm:text-xs bg-[#F7F6F0] border border-[#E2DFD2] rounded font-mono"
                       />
                     </div>
                   </div>
@@ -567,7 +567,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs mt-2"
+                  className="w-full min-h-[44px] py-2.5 text-xs font-semibold text-white bg-[#183D2B] hover:bg-[#254F38] rounded shadow-xs mt-2 cursor-pointer flex items-center justify-center"
                 >
                   Complete Registration (Pending Verification)
                 </button>

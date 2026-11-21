@@ -86,18 +86,18 @@ export const FoodSafetyInspectorModal: React.FC<FoodSafetyInspectorModalProps> =
       role="dialog"
       aria-modal="true"
       aria-labelledby="safety-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs"
     >
       <div className="bg-[#F7F6F0] rounded-xl max-w-2xl w-full border border-[#E2DFD2] shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#E2DFD2] bg-[#E8EDE2] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <ShieldCheck className="w-5 h-5 text-[#183D2B]" />
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#E2DFD2] bg-[#E8EDE2] flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-[#183D2B] shrink-0" />
             <div>
-              <h3 id="safety-modal-title" className="font-editorial text-lg font-bold text-[#183D2B]">
+              <h3 id="safety-modal-title" className="font-editorial text-base sm:text-lg font-bold text-[#183D2B]">
                 {activeTab === 'safety' ? 'Food Safety Assessment Report' : 'Immutable Audit History'}
               </h3>
-              <p className="text-xs text-[#50544C]">
+              <p className="text-[11px] sm:text-xs text-[#50544C]">
                 Record ID: <span className="font-mono font-medium text-[#252923]">{donation.id}</span> · <span className="font-medium text-[#252923]">{donation.foodName}</span>
               </p>
             </div>
@@ -105,17 +105,17 @@ export const FoodSafetyInspectorModal: React.FC<FoodSafetyInspectorModalProps> =
           <button
             onClick={onClose}
             aria-label="Close safety inspector modal"
-            className="p-1 text-[#50544C] hover:text-[#252923] transition-colors rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none"
+            className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center text-[#50544C] hover:text-[#252923] transition-colors rounded focus-visible:ring-2 focus-visible:ring-[#183D2B] focus-visible:outline-none cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-[#E2DFD2] bg-white px-6">
+        <div className="flex border-b border-[#E2DFD2] bg-white px-4 sm:px-6 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('safety')}
-            className={`py-2.5 px-4 text-xs font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`py-2.5 px-3 sm:px-4 text-xs font-medium border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap min-h-[38px] cursor-pointer ${
               activeTab === 'safety'
                 ? 'border-[#183D2B] text-[#183D2B] font-semibold'
                 : 'border-transparent text-[#50544C] hover:text-[#183D2B]'
@@ -126,7 +126,7 @@ export const FoodSafetyInspectorModal: React.FC<FoodSafetyInspectorModalProps> =
           </button>
           <button
             onClick={() => setActiveTab('audit')}
-            className={`py-2.5 px-4 text-xs font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`py-2.5 px-3 sm:px-4 text-xs font-medium border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap min-h-[38px] cursor-pointer ${
               activeTab === 'audit'
                 ? 'border-[#183D2B] text-[#183D2B] font-semibold'
                 : 'border-transparent text-[#50544C] hover:text-[#183D2B]'
@@ -138,7 +138,7 @@ export const FoodSafetyInspectorModal: React.FC<FoodSafetyInspectorModalProps> =
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-5 overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
           {activeTab === 'safety' ? (
             <>
               {/* Status Alert */}
@@ -382,10 +382,10 @@ export const FoodSafetyInspectorModal: React.FC<FoodSafetyInspectorModalProps> =
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 bg-[#E8EDE2] border-t border-[#E2DFD2] flex justify-end">
+        <div className="px-4 sm:px-6 py-3 bg-[#E8EDE2] border-t border-[#E2DFD2] flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-[#183D2B] bg-white border border-[#E2DFD2] rounded hover:bg-stone-50 transition-colors"
+            className="w-full sm:w-auto min-h-[44px] sm:min-h-[36px] px-4 py-2 text-xs font-semibold text-[#183D2B] bg-white border border-[#E2DFD2] rounded hover:bg-stone-50 transition-colors cursor-pointer flex items-center justify-center"
           >
             Close Audit View
           </button>

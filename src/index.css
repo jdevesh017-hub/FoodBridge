@@ -18,6 +18,16 @@
     overflow-x: hidden;
   }
 
+  /* Touch-friendly scrolling without jarring desktop scrollbars */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
   h1, h2, h3, .font-editorial {
     font-family: 'Playfair Display', Georgia, serif;
   }
