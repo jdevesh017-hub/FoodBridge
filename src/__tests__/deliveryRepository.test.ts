@@ -177,16 +177,88 @@ describe('Delivery Repository & Courier Workflow', () => {
       });
 
       // Attempt to report discrepancy after delivery verification
-      const discrepancyRes = deliveryRepository.reportDiscrepancy(testDonationId, {
-        reportedAt: new Date().toISOString(),
-        reportedByRole: 'ngo',
-        reporterName: testNgo.name,
-        issueType: 'quantity_mismatch',
-        details: 'Attempting to flag discrepancy after final delivery confirmation',
-      });
+      const discrepancyRes = deliveryRepository.reportDiscrepancy(
+        testDonationId,
+        testNgo.id,
+        'ngo',
+        {
+          reportedAt: new Date().toISOString(),
+          reportedByRole: 'ngo',
+          reporterName: testNgo.name,
+          issueType: 'quantity_mismatch',
+          details: 'Attempting to flag discrepancy after final delivery confirmation',
+        }
+      );
 
       expect(discrepancyRes.success).toBe(false);
       expect(discrepancyRes.error).toBeDefined();
+    });
+
+    it('rejects reporting a discrepancy by an unrelated NGO or imposter', () => {
+      // Donation is reserved by testNgo
+      deliveryRepository.acceptTask(testDonationId, testVolunteerA);
+
+      const unauthorizedRes = deliveryRepository.reportDiscrepancy(
+        testDonationId,
+        wrongNgo.id,
+        'ngo',
+        {
+          reportedAt: new Date().toISOString(),
+          reportedByRole: 'ngo',
+          reporterName: wrongNgo.name,
+          issueType: 'damaged_food',
+          details: 'Unrelated NGO trying to report issue',
+        }
+      );
+
+      expect(unauthorizedRes.success).toBe(false);
+      expect(unauthorizedRes.error).toContain('Unauthorized: Only the reserving NGO, assigned delivery partner, or listing donor');
+    });
+
+    it('rejects reporting a discrepancy by an unassigned volunteer', () => {
+      deliveryRepository.acceptTask(testDonationId, testVolunteerA);
+
+      const unassignedRes = deliveryRepository.reportDiscrepancy(
+        testDonationId,
+        testVolunteerB.id,
+        'volunteer',
+        {
+          reportedAt: new Date().toISOString(),
+          reportedByRole: 'volunteer',
+          reporterName: testVolunteerB.name,
+          issueType: 'damaged_food',
+          details: 'Unassigned volunteer trying to report issue',
+        }
+      );
+
+      expect(unassignedRes.success).toBe(false);
+      expect(unassignedRes.error).toContain('Unauthorized: Only the reserving NGO, assigned delivery partner, or listing donor');
+    });
+
+    it('allows legitimate reserving NGO to report a discrepancy on active delivery', () => {
+      deliveryRepository.acceptTask(testDonationId, testVolunteerA);
+      deliveryRepository.confirmArrivalAtDonor(testDonationId, testVolunteerA.id, testVolunteerA.name);
+      deliveryRepository.confirmPickup(testDonationId, testVolunteerA.id, testVolunteerA.name, 25);
+      deliveryRepository.confirmArrivalAtNgo(testDonationId, testVolunteerA.id, testVolunteerA.name);
+
+      const legitimateRes = deliveryRepository.reportDiscrepancy(
+        testDonationId,
+        testNgo.id,
+        'ngo',
+        {
+          reportedAt: new Date().toISOString(),
+          reportedByRole: 'ngo',
+          reporterName: testNgo.name,
+          issueType: 'safety_temp_breach',
+          details: 'Temperature measured at 52C - below safe threshold',
+          actualWeightReceivedKg: 25,
+        }
+      );
+
+      expect(legitimateRes.success).toBe(true);
+      const item = donationRepository.findById(testDonationId);
+      expect(item?.status).toBe('disputed');
+      expect(item?.discrepancyReport?.issueType).toBe('safety_temp_breach');
     });
   });
 

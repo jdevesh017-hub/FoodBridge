@@ -189,7 +189,8 @@ export class VolunteerService {
    */
   public reportDiscrepancy(
     donationId: string,
-    reporterRole: 'ngo' | 'volunteer',
+    actorId: string,
+    reporterRole: 'ngo' | 'volunteer' | 'donor',
     reporterName: string,
     issue: {
       issueType: 'damaged_food' | 'quantity_mismatch' | 'safety_temp_breach' | 'packaging_breach' | 'facility_closed';
@@ -207,16 +208,15 @@ export class VolunteerService {
       actualWeightReceivedKg: issue.actualWeightReceivedKg,
     };
 
-    const res = deliveryRepository.reportDiscrepancy(donationId, discrepancyReport);
+    const res = deliveryRepository.reportDiscrepancy(donationId, actorId, reporterRole, discrepancyReport);
     if (!res.success) {
       return res;
     }
 
-    const item = donationRepository.findById(donationId);
     auditEventRepository.record({
       entityId: donationId,
       entityType: 'donation',
-      actorId: reporterRole === 'ngo' ? (item?.reservedByNgoId || 'ngo') : (item?.assignedVolunteerId || 'volunteer'),
+      actorId,
       actorName: reporterName,
       actorRole: reporterRole,
       eventType: 'delivery_issue_reported',

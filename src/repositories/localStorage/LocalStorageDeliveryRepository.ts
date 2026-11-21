@@ -447,6 +447,8 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
 
   public reportDiscrepancy(
     donationId: string,
+    actorId: string,
+    actorRole: 'ngo' | 'volunteer' | 'donor',
     report: DiscrepancyReport
   ): { success: boolean; error?: string } {
     const donations = storageAdapter.getDonations();
@@ -454,6 +456,18 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
     if (index === -1) return { success: false, error: 'Donation not found.' };
 
     const item = donations[index];
+
+    // Authorization: only the reserving NGO, the assigned volunteer, or the donor of that donation
+    const isReservingNgo = actorRole === 'ngo' && item.reservedByNgoId === actorId;
+    const isAssignedVolunteer = actorRole === 'volunteer' && item.assignedVolunteerId === actorId;
+    const isListingDonor = actorRole === 'donor' && item.donorId === actorId;
+
+    if (!isReservingNgo && !isAssignedVolunteer && !isListingDonor) {
+      return {
+        success: false,
+        error: 'Unauthorized: Only the reserving NGO, assigned delivery partner, or listing donor can report a discrepancy for this donation.',
+      };
+    }
 
     if (item.status === 'disputed' || item.discrepancyReport) {
       return {

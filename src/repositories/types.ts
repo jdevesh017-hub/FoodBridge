@@ -109,6 +109,8 @@ export interface IDeliveryRepository {
   ): { success: boolean; error?: string };
   reportDiscrepancy(
     donationId: string,
+    actorId: string,
+    actorRole: 'ngo' | 'volunteer' | 'donor',
     report: DiscrepancyReport
   ): { success: boolean; error?: string };
 }

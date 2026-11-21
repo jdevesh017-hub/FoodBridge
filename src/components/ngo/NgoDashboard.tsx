@@ -252,6 +252,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
 
     const res = volunteerService.reportDiscrepancy(
       discrepancyDonation.id,
+      ngoId,
       'ngo',
       receivingSupervisorInput || ngoName,
       {
