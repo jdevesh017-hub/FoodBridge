@@ -4,7 +4,7 @@
  * timeline auditing, 4-tier quantity tracking, and FSSAI safety evaluations.
  */
 
-import { DonationStatus, FoodCategory, FoodDonation, QuantityLedger, StorageCondition, DietaryTag, TemperatureUnit, PackagingCondition, AuditEvent } from '../types';
+import { DonationStatus, FoodCategory, FoodDonation, QuantityLedger, StorageCondition, DietaryTag, TemperatureUnit, PackagingCondition, AuditEvent, UserRole } from '../types';
 import { evaluateFoodSafetyAssessment, evaluateFssaiFoodSafety, convertToCelsius } from './fssaiSafetyRules';
 import { donationRepository, reservationRepository, auditEventRepository } from '../repositories';
 import { LifecycleManager } from './lifecycleManager';
@@ -325,7 +325,8 @@ export class DonationService {
       pickupWindowStart: string;
       pickupWindowEnd: string;
       specialHandlingNotes?: string;
-    }
+    },
+    actorRole: UserRole = 'donor'
   ): { success: boolean; donation?: FoodDonation; error?: string } {
     const donations = donationRepository.findAll();
     const index = donations.findIndex((d) => d.id === donationId);
@@ -336,7 +337,10 @@ export class DonationService {
 
     const item = donations[index];
 
-    const roleCheck = LifecycleManager.validateRolePermission('edit_donation', 'donor');
+    const roleCheck = LifecycleManager.validateRolePermission('edit_donation', actorRole, {
+      ownerId: item.donorId,
+      actorId: donorId,
+    });
     if (!roleCheck.allowed) {
       return { success: false, error: roleCheck.error };
     }
@@ -460,13 +464,9 @@ export class DonationService {
   public cancelDonationByDonor(
     donationId: string,
     donorId: string,
-    reason: string
+    reason: string,
+    actorRole: UserRole = 'donor'
   ): { success: boolean; error?: string } {
-    const roleCheck = LifecycleManager.validateRolePermission('cancel_donation', 'donor');
-    if (!roleCheck.allowed) {
-      return { success: false, error: roleCheck.error };
-    }
-
     const donations = donationRepository.findAll();
     const index = donations.findIndex((d) => d.id === donationId);
 
@@ -475,6 +475,14 @@ export class DonationService {
     }
 
     const item = donations[index];
+
+    const roleCheck = LifecycleManager.validateRolePermission('cancel_donation', actorRole, {
+      ownerId: item.donorId,
+      actorId: donorId,
+    });
+    if (!roleCheck.allowed) {
+      return { success: false, error: roleCheck.error };
+    }
 
     if (item.donorId !== donorId) {
       return { success: false, error: 'Unauthorized: You can only cancel your own donations.' };

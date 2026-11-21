@@ -214,26 +214,31 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
     const pickupEnd = new Date(Date.now() + pickupHoursRemaining * 60 * 60 * 1000).toISOString();
 
     if (editingDonation) {
-      const result = donationService.updateDonation(editingDonation.id, donorId, {
-        foodName,
-        foodCategory,
-        description,
-        dietaryTags,
-        donorEstimatedKg: Number(estimatedKg),
-        measuredKg: measuredKg ? Number(measuredKg) : undefined,
-        storageCondition,
-        temperatureCelsius: temperatureCelsius !== '' ? Number(temperatureCelsius) : undefined,
-        temperatureUnit,
-        packagingCondition,
-        foodHandlingNotes,
-        bestBeforeTimestamp: bestBeforeDate ? new Date(bestBeforeDate).toISOString() : undefined,
-        preparationTimestamp: prepTimeIso,
-        isCleanPackaged: packagingCondition === 'food_grade_sealed' || packagingCondition === 'covered_clean',
-        isAllergenLabelled,
-        pickupWindowStart: pickupStart,
-        pickupWindowEnd: pickupEnd,
-        specialHandlingNotes: specialNotes,
-      });
+      const result = donationService.updateDonation(
+        editingDonation.id,
+        donorId,
+        {
+          foodName,
+          foodCategory,
+          description,
+          dietaryTags,
+          donorEstimatedKg: Number(estimatedKg),
+          measuredKg: measuredKg ? Number(measuredKg) : undefined,
+          storageCondition,
+          temperatureCelsius: temperatureCelsius !== '' ? Number(temperatureCelsius) : undefined,
+          temperatureUnit,
+          packagingCondition,
+          foodHandlingNotes,
+          bestBeforeTimestamp: bestBeforeDate ? new Date(bestBeforeDate).toISOString() : undefined,
+          preparationTimestamp: prepTimeIso,
+          isCleanPackaged: packagingCondition === 'food_grade_sealed' || packagingCondition === 'covered_clean',
+          isAllergenLabelled,
+          pickupWindowStart: pickupStart,
+          pickupWindowEnd: pickupEnd,
+          specialHandlingNotes: specialNotes,
+        },
+        user?.role || 'donor'
+      );
 
       if (result.success && result.donation) {
         onShowToast(`Listing updated successfully: "${result.donation.foodName}".`, 'success');
@@ -285,7 +290,12 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
     e.preventDefault();
     if (!cancellingDonation) return;
 
-    const res = donationService.cancelDonationByDonor(cancellingDonation.id, donorId, cancelReasonInput);
+    const res = donationService.cancelDonationByDonor(
+      cancellingDonation.id,
+      donorId,
+      cancelReasonInput,
+      user?.role || 'donor'
+    );
     if (res.success) {
       onShowToast(`Donation "${cancellingDonation.foodName}" cancelled.`, 'info');
       setCancellingDonation(null);
