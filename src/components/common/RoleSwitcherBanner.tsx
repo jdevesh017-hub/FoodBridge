@@ -18,6 +18,10 @@ export const RoleSwitcherBanner: React.FC<RoleSwitcherBannerProps> = ({
   activeUserName,
   onShowToast,
 }) => {
+  if (!import.meta.env.DEV && import.meta.env.VITE_DEMO_MODE !== 'true') {
+    return null;
+  }
+
   const handleReset = () => {
     if (window.confirm('Reset demo baseline data? Note: All your custom user-created donations and accounts will be safely preserved.')) {
       storageAdapter.resetDemoData();

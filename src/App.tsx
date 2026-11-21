@@ -159,16 +159,20 @@ export default function App() {
     }
   }, [currentView]);
 
+  const showRoleSwitcher = Boolean(import.meta.env.DEV || import.meta.env.VITE_DEMO_MODE === 'true');
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F6F0] text-[#252923]">
-      {/* 1. Evaluation Sandbox Perspective Switcher */}
-      <RoleSwitcherBanner
-        currentRole={session.role}
-        isDemoMode={session.isDemoMode}
-        onSelectRole={handleRoleSelect}
-        activeUserName={session.profile?.organizationName || session.profile?.fullName}
-        onShowToast={showToast}
-      />
+      {/* 1. Evaluation Sandbox Perspective Switcher (gated in production) */}
+      {showRoleSwitcher && (
+        <RoleSwitcherBanner
+          currentRole={session.role}
+          isDemoMode={session.isDemoMode}
+          onSelectRole={handleRoleSelect}
+          activeUserName={session.profile?.organizationName || session.profile?.fullName}
+          onShowToast={showToast}
+        />
+      )}
 
       {/* 2. Primary 3-Zone Top Bar */}
       <Navbar
