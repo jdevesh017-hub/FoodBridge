@@ -17,8 +17,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   donations,
   selectedDonationId,
   onSelectDonation,
-  centerLat = 19.0760,
-  centerLng = 72.8777,
+  centerLat,
+  centerLng,
   zoom = 13,
   showRouteForDonation,
 }) => {
@@ -30,9 +30,12 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
+    const initialLat = typeof centerLat === 'number' ? centerLat : (donations[0]?.donorLat ?? 0);
+    const initialLng = typeof centerLng === 'number' ? centerLng : (donations[0]?.donorLng ?? 0);
+
     if (!mapInstanceRef.current) {
       const map = L.map(mapContainerRef.current, {
-        center: [centerLat, centerLng],
+        center: [initialLat, initialLng],
         zoom,
         zoomControl: true,
         scrollWheelZoom: true,

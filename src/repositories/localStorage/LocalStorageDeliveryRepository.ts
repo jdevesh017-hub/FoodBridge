@@ -20,19 +20,24 @@ function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: num
 
 export class LocalStorageDeliveryRepository implements IDeliveryRepository {
   public getAvailableTasks(
-    volunteerLocation = { lat: 19.072, lng: 72.871 },
+    volunteerLocation?: { lat: number; lng: number },
     maxDistanceKm?: number
   ): FoodDonation[] {
     const donations = storageAdapter.getDonations();
     const tasks = donations
       .filter((d) => d.status === 'reserved' || d.status === 'volunteer_cancelled')
       .map((d) => {
-        const dist = calculateDistanceKm(
-          volunteerLocation.lat,
-          volunteerLocation.lng,
-          d.donorLat,
-          d.donorLng
-        );
+        const dist =
+          volunteerLocation &&
+          typeof volunteerLocation.lat === 'number' &&
+          typeof volunteerLocation.lng === 'number'
+            ? calculateDistanceKm(
+                volunteerLocation.lat,
+                volunteerLocation.lng,
+                d.donorLat,
+                d.donorLng
+              )
+            : 0;
         return { ...d, distanceKm: dist };
       })
       .filter((d) => (maxDistanceKm ? d.distanceKm <= maxDistanceKm : true))

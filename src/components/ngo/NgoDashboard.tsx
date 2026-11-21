@@ -81,8 +81,8 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
   const ngoId = user?.role === 'ngo' && user?.id ? user.id : '';
   const ngoName = user?.organizationName || user?.fullName || '';
   const ngoAddress = user?.address || '';
-  const ngoLat = user?.lat || 19.0620;
-  const ngoLng = user?.lng || 72.8550;
+  const ngoLat = typeof user?.lat === 'number' ? user.lat : undefined;
+  const ngoLng = typeof user?.lng === 'number' ? user.lng : undefined;
 
   React.useEffect(() => {
     if (initialTab) {
@@ -121,8 +121,10 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
     const effectiveKg = d.quantity.measuredKg || d.quantity.donorEstimatedKg;
     if (minQuantityKg > 0 && effectiveKg < minQuantityKg) return false;
 
-    const dist = calculateDistanceKm(ngoLat, ngoLng, d.donorLat, d.donorLng);
-    if (dist > maxDistanceKm) return false;
+    if (typeof ngoLat === 'number' && typeof ngoLng === 'number') {
+      const dist = calculateDistanceKm(ngoLat, ngoLng, d.donorLat, d.donorLng);
+      if (dist > maxDistanceKm) return false;
+    }
 
     // Pickup deadline filtering (within next X hours)
     if (pickupDeadlineHours < 24) {
@@ -184,8 +186,8 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
       id: ngoId,
       name: ngoName,
       address: ngoAddress,
-      lat: ngoLat,
-      lng: ngoLng,
+      lat: typeof ngoLat === 'number' ? ngoLat : 0,
+      lng: typeof ngoLng === 'number' ? ngoLng : 0,
       role: user?.role || 'ngo',
     });
 
@@ -482,13 +484,16 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                 ) : (
                   <div className="space-y-3">
                     {availableDonations.slice(0, 3).map((lot) => {
-                      const dist = calculateDistanceKm(ngoLat, ngoLng, lot.donorLat, lot.donorLng);
+                      const dist =
+                        typeof ngoLat === 'number' && typeof ngoLng === 'number'
+                          ? calculateDistanceKm(ngoLat, ngoLng, lot.donorLat, lot.donorLng)
+                          : null;
                       return (
                         <div key={lot.id} className="p-3.5 rounded border border-[#E2DFD2] bg-[#FBF9F5] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                           <div>
                             <p className="font-semibold text-sm text-[#183D2B]">{lot.foodName}</p>
                             <p className="text-[11px] text-[#50544C]">
-                              {lot.quantity.measuredKg || lot.quantity.donorEstimatedKg} kg · {dist.toFixed(1)} km away ({lot.donorName})
+                              {lot.quantity.measuredKg || lot.quantity.donorEstimatedKg} kg{dist !== null ? ` · ${dist.toFixed(1)} km away` : ''} ({lot.donorName})
                             </p>
                           </div>
 

@@ -28,8 +28,12 @@ export class VolunteerService {
   /**
    * List donations that are reserved and waiting for volunteer courier assignment.
    */
-  public getAvailableTasks(volunteerLat = 19.0720, volunteerLng = 72.8710): (FoodDonation & { distanceKm: number })[] {
-    return deliveryRepository.getAvailableTasks({ lat: volunteerLat, lng: volunteerLng }) as (FoodDonation & { distanceKm: number })[];
+  public getAvailableTasks(volunteerLat?: number, volunteerLng?: number): (FoodDonation & { distanceKm: number })[] {
+    const location =
+      typeof volunteerLat === 'number' && typeof volunteerLng === 'number'
+        ? { lat: volunteerLat, lng: volunteerLng }
+        : undefined;
+    return deliveryRepository.getAvailableTasks(location) as (FoodDonation & { distanceKm: number })[];
   }
 
   /**

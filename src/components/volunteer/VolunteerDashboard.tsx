@@ -63,8 +63,8 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   const volunteerId = user?.role === 'volunteer' && user?.id ? user.id : '';
   const volunteerName = user?.fullName || '';
   const volunteerPhone = user?.phone || '';
-  const volunteerLat = user?.lat || 19.0720;
-  const volunteerLng = user?.lng || 72.8710;
+  const volunteerLat = typeof user?.lat === 'number' ? user.lat : undefined;
+  const volunteerLng = typeof user?.lng === 'number' ? user.lng : undefined;
 
   React.useEffect(() => {
     if (initialTab) {
