@@ -376,6 +376,14 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
     if (index === -1) return { success: false, error: 'Donation not found.' };
 
     const item = donations[index];
+
+    if (item.status === 'disputed' || item.discrepancyReport) {
+      return {
+        success: false,
+        error: 'A discrepancy report has already been logged for this donation. Duplicate or overwritten reports are rejected.',
+      };
+    }
+
     const transitionCheck = LifecycleManager.validateTransition(item.status, 'disputed');
     if (!transitionCheck.allowed) {
       return {

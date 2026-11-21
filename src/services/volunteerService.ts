@@ -220,33 +220,6 @@ export class VolunteerService {
     return { success: true };
   }
 
-  /**
-   * Report transit or delivery failure from the volunteer courier.
-   */
-  public reportDeliveryFailure(
-    donationId: string,
-    volunteerName: string,
-    reason: string
-  ): { success: boolean; error?: string } {
-    const item = donationRepository.findById(donationId);
-    if (!item) return { success: false, error: 'Donation not found.' };
-
-    const nowIso = new Date().toISOString();
-    const timeline = item.timeline || [];
-    timeline.push({
-      status: 'delivery_issue',
-      timestamp: nowIso,
-      actor: volunteerName,
-      note: `Delivery issue reported: ${reason}`,
-    });
-
-    const updated = donationRepository.update(donationId, {
-      status: 'delivery_issue',
-      timeline,
-    });
-
-    return updated ? { success: true } : { success: false, error: 'Failed to update donation.' };
-  }
 
   /**
    * Exception Recovery 1: Volunteer cancels assignment before physical pickup.
