@@ -132,7 +132,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
       return { success: false, error: roleCheck.error };
     }
 
-    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+    if (item.assignedVolunteerId !== volunteerId) {
       return { success: false, error: 'Unauthorized: Only the assigned courier can confirm arrival at donor.' };
     }
 
@@ -177,7 +177,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
       return { success: false, error: roleCheck.error };
     }
 
-    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+    if (item.assignedVolunteerId !== volunteerId) {
       return { success: false, error: 'Unauthorized: Only the assigned courier can confirm pickup for this task.' };
     }
 
@@ -227,7 +227,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
       return { success: false, error: roleCheck.error };
     }
 
-    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+    if (item.assignedVolunteerId !== volunteerId) {
       return { success: false, error: 'Unauthorized: Only the assigned courier can confirm arrival at NGO.' };
     }
 
@@ -290,7 +290,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
       return { success: false, error: roleCheck.error };
     }
 
-    if (item.reservedByNgoId && item.reservedByNgoId !== ngoId) {
+    if (item.reservedByNgoId !== ngoId) {
       return { success: false, error: 'Unauthorized: Only the organization that reserved this batch can sign off on receipt.' };
     }
 
@@ -369,7 +369,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
       return { success: false, error: roleCheck.error };
     }
 
-    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+    if (item.assignedVolunteerId !== volunteerId) {
       return { success: false, error: 'Unauthorized: Only the assigned courier can report pickup failure for this task.' };
     }
 
@@ -413,7 +413,7 @@ export class LocalStorageDeliveryRepository implements IDeliveryRepository {
       return { success: false, error: roleCheck.error };
     }
 
-    if (item.assignedVolunteerId && item.assignedVolunteerId !== volunteerId) {
+    if (item.assignedVolunteerId !== volunteerId) {
       return { success: false, error: 'Unauthorized: Only the assigned courier can release this task.' };
     }
 

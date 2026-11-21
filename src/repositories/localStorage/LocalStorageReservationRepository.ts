@@ -165,7 +165,7 @@ export class LocalStorageReservationRepository implements IReservationRepository
       return { success: false, error: roleCheck.error };
     }
 
-    if (item.reservedByNgoId && item.reservedByNgoId !== ngoId) {
+    if (item.reservedByNgoId !== ngoId) {
       return { success: false, error: 'Unauthorized: You can only release reservations claimed by your own organization.' };
     }
 
