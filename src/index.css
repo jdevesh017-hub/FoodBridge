@@ -18,7 +18,13 @@
     overflow-x: hidden;
   }
 
-  /* Touch-friendly scrolling without jarring desktop scrollbars */
+  h1, h2, h3, .font-editorial {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Touch-friendly scrolling without jarring desktop scrollbars */
+@layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -27,9 +33,17 @@
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
+}
 
-  h1, h2, h3, .font-editorial {
-    font-family: 'Playfair Display', Georgia, serif;
+/* Global accessibility rule: honor user preferences for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
