@@ -5,6 +5,8 @@ import { StatusBadge } from '../common/StatusBadge';
 import { AccessibleModal } from '../common/AccessibleModal';
 
 const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
+const DeliveryRouteMap = React.lazy(() => import('../delivery/DeliveryRouteMap'));
+import { DeliveryStepper } from '../delivery/DeliveryStepper';
 
 const MapFallback = () => (
   <div className="h-full min-h-[300px] w-full bg-[#E8EDE2]/50 rounded-xl border border-[#E2DFD2] flex flex-col items-center justify-center gap-2 p-6">
@@ -635,7 +637,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Active Task Card */}
-              <div className="lg:col-span-7 bg-white rounded-lg border border-[#E2DFD2] p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-xs">
+              <div className={`${activeRun.donorLat && activeRun.donorLng && activeRun.ngoLat && activeRun.ngoLng ? 'lg:col-span-7' : 'lg:col-span-12'} bg-white rounded-lg border border-[#E2DFD2] p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-xs`}>
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3 border-b border-[#E2DFD2] pb-4">
                   <div>
@@ -655,53 +657,30 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                   </span>
                 </div>
 
-                {/* 4-STAGE PROGRESSION STEPPER */}
-                <div className="space-y-3">
+                {/* 4-STAGE ANIMATED DELIVERY STEPPER */}
+                <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wider text-[#647C50]">
                     Courier Dispatch Sequence
                   </p>
+                  <DeliveryStepper status={activeRun.status} />
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                    {/* Stage 1 */}
-                    <div className="p-2.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-900 font-semibold">
-                      <p className="text-[10px] text-emerald-700">Step 1</p>
-                      <p>Accepted</p>
+                  {/* Mission Parameters Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs pt-1">
+                    <div className="p-2 bg-[#F7F6F0] rounded border border-[#E2DFD2]">
+                      <p className="text-[10px] text-[#647C50]">Estimated Weight</p>
+                      <p className="font-bold text-[#183D2B] font-mono">{activeRun.quantity.donorEstimatedKg} kg</p>
                     </div>
-
-                    {/* Stage 2 */}
-                    <div
-                      className={`p-2.5 rounded border ${
-                        ['arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation', 'delivered'].includes(activeRun.status)
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold'
-                          : 'bg-[#F7F6F0] border-[#E2DFD2] text-[#50544C]'
-                      }`}
-                    >
-                      <p className="text-[10px]">Step 2</p>
-                      <p>At Donor</p>
+                    <div className="p-2 bg-[#F7F6F0] rounded border border-[#E2DFD2]">
+                      <p className="text-[10px] text-[#647C50]">Thermal Holding</p>
+                      <p className="font-bold text-[#183D2B] capitalize">{activeRun.safety.storageCondition.replace(/_/g, ' ')}</p>
                     </div>
-
-                    {/* Stage 3 */}
-                    <div
-                      className={`p-2.5 rounded border ${
-                        ['picked_up', 'in_transit', 'awaiting_ngo_confirmation', 'delivered'].includes(activeRun.status)
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold'
-                          : 'bg-[#F7F6F0] border-[#E2DFD2] text-[#50544C]'
-                      }`}
-                    >
-                      <p className="text-[10px]">Step 3</p>
-                      <p>Picked Up</p>
+                    <div className="p-2 bg-[#F7F6F0] rounded border border-[#E2DFD2]">
+                      <p className="text-[10px] text-[#647C50]">Meals Served</p>
+                      <p className="font-bold text-[#183D2B]">~{activeRun.quantity.servingsEstimate}</p>
                     </div>
-
-                    {/* Stage 4 */}
-                    <div
-                      className={`p-2.5 rounded border ${
-                        ['awaiting_ngo_confirmation', 'delivered'].includes(activeRun.status)
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold'
-                          : 'bg-[#F7F6F0] border-[#E2DFD2] text-[#50544C]'
-                      }`}
-                    >
-                      <p className="text-[10px]">Step 4</p>
-                      <p>At NGO</p>
+                    <div className="p-2 bg-[#F7F6F0] rounded border border-[#E2DFD2]">
+                      <p className="text-[10px] text-[#647C50]">Safe Window</p>
+                      <p className="font-bold text-[#183D2B]">FSSAI Safe</p>
                     </div>
                   </div>
                 </div>
@@ -804,16 +783,22 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
                 </div>
               </div>
 
-              {/* Right: Active Route Map */}
-              <div className="lg:col-span-5 h-[340px] sm:h-[420px] lg:h-[480px]">
-                <React.Suspense fallback={<MapFallback />}>
-                  <LeafletMap
-                    donations={[activeRun]}
-                    selectedDonationId={activeRun.id}
-                    showRouteForDonation={activeRun}
-                  />
-                </React.Suspense>
-              </div>
+              {/* Right: Active Dynamic Route Map (only rendered when coordinates exist on both sides) */}
+              {activeRun.donorLat && activeRun.donorLng && activeRun.ngoLat && activeRun.ngoLng ? (
+                <div className="lg:col-span-5 h-[340px] sm:h-[420px] lg:h-[480px]">
+                  <React.Suspense fallback={<MapFallback />}>
+                    <DeliveryRouteMap
+                      donorLat={activeRun.donorLat}
+                      donorLng={activeRun.donorLng}
+                      donorName={activeRun.donorName}
+                      ngoLat={activeRun.ngoLat}
+                      ngoLng={activeRun.ngoLng}
+                      ngoName={activeRun.reservedByNgoName}
+                      status={activeRun.status}
+                    />
+                  </React.Suspense>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

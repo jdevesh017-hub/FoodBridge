@@ -3,6 +3,8 @@ import { donationService } from '../../services/donationService';
 import { FoodCategory, FoodDonation, StorageCondition, UserProfile, DietaryTag } from '../../types';
 import { StatusBadge } from '../common/StatusBadge';
 import { AccessibleModal } from '../common/AccessibleModal';
+import { DeliveryStepper } from '../delivery/DeliveryStepper';
+const DeliveryRouteMap = React.lazy(() => import('../delivery/DeliveryRouteMap'));
 import {
   Plus,
   CheckCircle2,
@@ -796,6 +798,13 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                         )}
                       </div>
 
+                      {/* Active Delivery Progress */}
+                      {['reserved', 'assigned', 'arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(d.status) && (
+                        <div className="pt-2 border-t border-[#E2DFD2]/60">
+                          <DeliveryStepper status={d.status} compact />
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#E2DFD2]">
                         <button
                           onClick={() => setInspectDonation(d)}
@@ -1558,6 +1567,29 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
                   <p className="text-[#737373] italic">Surplus is open in the NGO discovery pool. No reservations yet.</p>
                 )}
               </div>
+
+              {/* Delivery Stepper & Map for claimed / active / completed items */}
+              {['reserved', 'assigned', 'arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation', 'delivered'].includes(inspectDonation.status) && (
+                <div className="pt-2 border-t border-[#E2DFD2] space-y-2">
+                  <p className="text-[#647C50] font-semibold uppercase tracking-wider">Live Delivery Progression</p>
+                  <DeliveryStepper status={inspectDonation.status} />
+                  {inspectDonation.donorLat && inspectDonation.donorLng && inspectDonation.ngoLat && inspectDonation.ngoLng ? (
+                    <div className="h-44 w-full rounded-lg overflow-hidden border border-[#E2DFD2] mt-2">
+                      <React.Suspense fallback={<div className="h-full w-full bg-[#E8EDE2] animate-pulse" />}>
+                        <DeliveryRouteMap
+                          donorLat={inspectDonation.donorLat}
+                          donorLng={inspectDonation.donorLng}
+                          donorName={inspectDonation.donorName}
+                          ngoLat={inspectDonation.ngoLat}
+                          ngoLng={inspectDonation.ngoLng}
+                          ngoName={inspectDonation.reservedByNgoName}
+                          status={inspectDonation.status}
+                        />
+                      </React.Suspense>
+                    </div>
+                  ) : null}
+                </div>
+              )}
 
               {/* Timeline audit */}
               <div className="pt-2 border-t border-[#E2DFD2] space-y-1">

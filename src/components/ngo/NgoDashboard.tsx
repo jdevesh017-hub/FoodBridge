@@ -6,6 +6,8 @@ import { StatusBadge } from '../common/StatusBadge';
 import { AccessibleModal } from '../common/AccessibleModal';
 
 const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
+const DeliveryRouteMap = React.lazy(() => import('../delivery/DeliveryRouteMap'));
+import { DeliveryStepper } from '../delivery/DeliveryStepper';
 
 const MapFallback = () => (
   <div className="h-full min-h-[300px] w-full bg-[#E8EDE2]/50 rounded-xl border border-[#E2DFD2] flex flex-col items-center justify-center gap-2 p-6">
@@ -929,25 +931,28 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
                     </div>
                   </div>
 
-                  {/* 5-Stage Stepper */}
-                  <div className="space-y-1 text-xs">
-                    <p className="font-semibold text-[#252923]">Delivery Sequence</p>
-                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-[#50544C] flex-wrap">
-                      <span className="font-semibold text-[#183D2B]">1. Reserved</span>
-                      <span>→</span>
-                      <span className={['assigned', 'arrived_at_donor', 'picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(claim.status) ? 'font-semibold text-[#183D2B]' : ''}>
-                        2. Courier Assigned
-                      </span>
-                      <span>→</span>
-                      <span className={['picked_up', 'in_transit', 'awaiting_ngo_confirmation'].includes(claim.status) ? 'font-semibold text-[#183D2B]' : ''}>
-                        3. In Transit
-                      </span>
-                      <span>→</span>
-                      <span className={['awaiting_ngo_confirmation'].includes(claim.status) ? 'font-bold text-purple-800' : ''}>
-                        4. At Facility
-                      </span>
-                    </div>
+                  {/* Animated Delivery Stepper */}
+                  <div className="space-y-1.5">
+                    <p className="font-semibold text-xs text-[#252923]">Delivery Sequence</p>
+                    <DeliveryStepper status={claim.status} />
                   </div>
+
+                  {/* Live Route Map if coordinates are present on both sides */}
+                  {claim.donorLat && claim.donorLng && claim.ngoLat && claim.ngoLng ? (
+                    <div className="h-44 w-full rounded-lg overflow-hidden border border-[#E2DFD2]">
+                      <React.Suspense fallback={<MapFallback />}>
+                        <DeliveryRouteMap
+                          donorLat={claim.donorLat}
+                          donorLng={claim.donorLng}
+                          donorName={claim.donorName}
+                          ngoLat={claim.ngoLat}
+                          ngoLng={claim.ngoLng}
+                          ngoName={claim.reservedByNgoName || ngoName}
+                          status={claim.status}
+                        />
+                      </React.Suspense>
+                    </div>
+                  ) : null}
 
                   {/* ACTION BAR */}
                   <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-t border-[#E2DFD2]">
