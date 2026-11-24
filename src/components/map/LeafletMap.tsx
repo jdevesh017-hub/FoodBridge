@@ -13,6 +13,8 @@ interface LeafletMapProps {
   showRouteForDonation?: FoodDonation | null;
 }
 
+let hasWarnedMissingCartoKey = false;
+
 export const LeafletMap: React.FC<LeafletMapProps> = ({
   donations,
   selectedDonationId,
@@ -26,6 +28,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const routeLayerRef = useRef<L.Polyline | null>(null);
+
+  const cartoApiKey = import.meta.env.VITE_CARTO_API_KEY;
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -41,11 +45,16 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         scrollWheelZoom: true,
       });
 
-      // Warm, muted OpenStreetMap CartoDB Positron tiles for clean editorial look
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-        maxZoom: 19,
-      }).addTo(map);
+      // Warm, muted OpenStreetMap CartoDB Voyager tiles for clean editorial look
+      if (cartoApiKey) {
+        L.tileLayer(`https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(cartoApiKey)}`, {
+          attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+          maxZoom: 19,
+        }).addTo(map);
+      } else if (!hasWarnedMissingCartoKey) {
+        console.warn('Map tiles need a CARTO API key — see README');
+        hasWarnedMissingCartoKey = true;
+      }
 
       mapInstanceRef.current = map;
       markersLayerRef.current = L.layerGroup().addTo(map);
@@ -68,7 +77,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [cartoApiKey]);
 
   // Update markers and route when donations change
   useEffect(() => {
@@ -179,6 +188,16 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   return (
     <div className="relative w-full h-full min-h-[380px] bg-[#E8EDE2] rounded-lg overflow-hidden border border-[#E2DFD2] shadow-xs">
       <div ref={mapContainerRef} className="w-full h-full" />
+      {/* Fallback Notice when CARTO API key is missing */}
+      {!cartoApiKey && (
+        <div
+          role="status"
+          className="absolute top-3 left-3 z-[1000] bg-white/95 backdrop-blur-xs px-3.5 py-2 rounded text-xs shadow-sm border border-[#E2DFD2] flex items-center gap-2 text-[#252923]"
+        >
+          <span className="w-2 h-2 rounded-full bg-[#C77A54] shrink-0" aria-hidden="true" />
+          <span>Map tiles need a CARTO API key — see README</span>
+        </div>
+      )}
       {/* Legend Overlay */}
       <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-xs px-3 py-2 rounded text-[11px] shadow-sm border border-[#E2DFD2] flex items-center gap-3">
         <div className="flex items-center gap-1.5">

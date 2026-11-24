@@ -54,10 +54,13 @@ export const DeliveryRouteMap: React.FC<DeliveryRouteMapProps> = ({
       });
 
       // Warm, muted CartoDB Voyager tiles matching brand tone
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-        maxZoom: 19,
-      }).addTo(map);
+      const cartoApiKey = import.meta.env.VITE_CARTO_API_KEY;
+      if (cartoApiKey) {
+        L.tileLayer(`https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(cartoApiKey)}`, {
+          attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+          maxZoom: 19,
+        }).addTo(map);
+      }
 
       mapInstanceRef.current = map;
       layersGroupRef.current = L.layerGroup().addTo(map);
@@ -185,6 +188,16 @@ export const DeliveryRouteMap: React.FC<DeliveryRouteMapProps> = ({
       aria-label="Delivery route map showing transit path from donor to NGO facility"
     >
       <div ref={mapContainerRef} className="w-full h-full" />
+      {/* Fallback Notice when CARTO API key is missing */}
+      {!import.meta.env.VITE_CARTO_API_KEY && (
+        <div
+          role="status"
+          className="absolute top-2.5 left-2.5 z-[1000] bg-white/95 backdrop-blur-xs px-3 py-1.5 rounded text-xs shadow-xs border border-[#E2DFD2] flex items-center gap-2 text-[#252923]"
+        >
+          <span className="w-2 h-2 rounded-full bg-[#C77A54] shrink-0" aria-hidden="true" />
+          <span>Map tiles need a CARTO API key — see README</span>
+        </div>
+      )}
       {/* Route Legend */}
       <div className="absolute bottom-2.5 left-2.5 z-[1000] bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded text-[10px] sm:text-[11px] shadow-xs border border-[#E2DFD2] flex items-center gap-2.5 pointer-events-none">
         <div className="flex items-center gap-1">
