@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, lazy, Suspense } from 'react';
 import { impactService } from '../../services/impactService';
 import { ArrowRight, ShieldCheck, HeartHandshake, Truck, Building2, Sparkles, Check, ChevronRight } from 'lucide-react';
+
+const RouteGlobe = lazy(() => import('./RouteGlobe'));
 
 interface LandingPageProps {
   onNavigate: (view: string) => void;
@@ -15,13 +17,82 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const demoStats = summary.demoBaseline;
   const sessionStats = summary.sessionVerified;
 
+  const headlineRef = useRef<HTMLDivElement>(null);
+  const photoRef = useRef<HTMLDivElement>(null);
+
+  // Tasteful Hero Parallax (disabled on touch devices & under prefers-reduced-motion)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isTouch || isReducedMotion) return;
+
+    let mouseX = 0;
+    let mouseY = 0;
+    let currentPhotoX = 0;
+    let currentPhotoY = 0;
+    let currentTextX = 0;
+    let currentTextY = 0;
+    let animId: number;
+
+    const onMouseMove = (e: MouseEvent) => {
+      // Normalized between -1 and 1
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+
+    const onScroll = () => {
+      const scrollProgress = Math.min(window.scrollY / 400, 1);
+      mouseY = mouseY * 0.7 + scrollProgress * 0.3;
+    };
+
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    const tick = () => {
+      const factor = 0.08;
+      // Photo moves slightly up to 12px
+      const targetPhotoX = mouseX * 12;
+      const targetPhotoY = mouseY * 12;
+      currentPhotoX += (targetPhotoX - currentPhotoX) * factor;
+      currentPhotoY += (targetPhotoY - currentPhotoY) * factor;
+
+      // Headline block moves less (max 3px) for gentle depth separation
+      const targetTextX = mouseX * 3;
+      const targetTextY = mouseY * 3;
+      currentTextX += (targetTextX - currentTextX) * factor;
+      currentTextY += (targetTextY - currentTextY) * factor;
+
+      if (photoRef.current) {
+        photoRef.current.style.transform = `translate3d(${currentPhotoX.toFixed(2)}px, ${currentPhotoY.toFixed(2)}px, 0)`;
+      }
+      if (headlineRef.current) {
+        headlineRef.current.style.transform = `translate3d(${currentTextX.toFixed(2)}px, ${currentTextY.toFixed(2)}px, 0)`;
+      }
+
+      animId = requestAnimationFrame(tick);
+    };
+
+    animId = requestAnimationFrame(tick);
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(animId);
+    };
+  }, []);
+
   return (
     <div className="space-y-24 pb-20">
       {/* 1. HERO SECTION (Editorial Split) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Left Column: Editorial Headline & Copy */}
-          <div className="lg:col-span-7 space-y-6">
+          {/* Left Column: Editorial Headline & Copy (Subtle Parallax) */}
+          <div
+            ref={headlineRef}
+            className="lg:col-span-7 space-y-6 will-change-transform"
+          >
             <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-[#647C50]">
               <span className="w-2 h-2 rounded-full bg-[#183D2B]" />
               <span>Food Recovery · Community · Sustainability</span>
@@ -74,12 +145,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Authentic Documentary Photography */}
+          {/* Right Column: Authentic Documentary Photography + Animated Route Globe */}
           <div className="lg:col-span-5 relative">
-            <div className="relative rounded-2xl overflow-hidden shadow-lg border border-[#E2DFD2] aspect-[4/3] bg-[#E8EDE2]">
+            {/* Lazy-Loaded Route Globe SVG Accent (Desktop only: hidden below 1024px) */}
+            <div className="absolute -top-6 -right-6 lg:-top-8 lg:-right-8 z-20 hidden lg:block">
+              <Suspense fallback={null}>
+                <RouteGlobe />
+              </Suspense>
+            </div>
+
+            <div
+              ref={photoRef}
+              className="relative rounded-2xl overflow-hidden shadow-lg border border-[#E2DFD2] aspect-[4/3] bg-[#E8EDE2] will-change-transform"
+            >
               <img
                 src="/images/hero_food_redistribution_1794331332502.webp"
                 alt="Community volunteers packing fresh nutritious meals"
+                width={800}
+                height={600}
+                fetchPriority="high"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
