@@ -8,6 +8,7 @@ import { AccessibleModal } from '../common/AccessibleModal';
 const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
 const DeliveryRouteMap = React.lazy(() => import('../delivery/DeliveryRouteMap'));
 import { DeliveryStepper } from '../delivery/DeliveryStepper';
+import { EmptyState } from '../common/EmptyState';
 
 const MapFallback = () => (
   <div className="h-full min-h-[300px] w-full bg-[#E8EDE2]/50 rounded-xl border border-[#E2DFD2] flex flex-col items-center justify-center gap-2 p-6">
@@ -62,6 +63,14 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
   const [minQuantityKg, setMinQuantityKg] = useState<number>(0);
   const [pickupDeadlineHours, setPickupDeadlineHours] = useState<number>(24);
   const [mobileDiscoverView, setMobileDiscoverView] = useState<'list' | 'map'>('list');
+
+  const handleClearFilters = () => {
+    setCategoryFilter('all');
+    setDietaryFilter('all');
+    setMaxDistanceKm(25);
+    setMinQuantityKg(0);
+    setPickupDeadlineHours(24);
+  };
 
   // Reservation Confirmation Modal State
   const [reservingDonation, setReservingDonation] = useState<FoodDonation | null>(null);
@@ -667,10 +676,14 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
             {/* Left Listings Column */}
             <div className={`lg:col-span-7 space-y-4 ${mobileDiscoverView === 'map' ? 'hidden lg:block' : 'block'}`}>
               {availableDonations.length === 0 ? (
-                <div className="bg-white p-8 sm:p-10 rounded-lg border border-[#E2DFD2] text-center space-y-2">
-                  <p className="font-editorial text-lg text-[#50544C]">No active surplus matching current filters.</p>
-                  <p className="text-xs text-[#737373]">Try resetting dietary or category filters to expand available lots.</p>
-                </div>
+                <EmptyState
+                  variant="ngo-discover"
+                  title="Explore fresh surplus across your community."
+                  description="Commercial kitchens log daily surplus batches. Reset filters or check back around shift changeovers."
+                  actionText="Reset Filters"
+                  actionIcon={<RotateCcw className="w-3.5 h-3.5" />}
+                  onAction={handleClearFilters}
+                />
               ) : (
                 availableDonations.map((donation) => {
                   const effectiveKg = donation.quantity.pickupConfirmedKg || donation.quantity.measuredKg || donation.quantity.donorEstimatedKg;
@@ -803,18 +816,14 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           </div>
 
           {myReservations.length === 0 ? (
-            <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-3">
-              <Clock className="w-8 h-8 text-[#647C50] mx-auto opacity-60" />
-              <p className="font-editorial text-lg text-[#50544C]">You have no pending reservations.</p>
-              <p className="text-xs text-[#737373]">Browse available surplus to claim fresh meals for your dining hall.</p>
-              <button
-                onClick={() => handleTabSelect('discover')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
-              >
-                <span>Browse Available Food</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <EmptyState
+              variant="ngo-reservations"
+              title="Claim fresh meals for your community hall."
+              description="Browse the discovery pool to claim fresh, nutritious meals from local commercial kitchens."
+              actionText="Browse Available Food"
+              actionIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              onAction={() => handleTabSelect('discover')}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {myReservations.map((claim) => (
@@ -887,13 +896,14 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           </div>
 
           {myDeliveries.length === 0 ? (
-            <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-3">
-              <Truck className="w-8 h-8 text-[#647C50] mx-auto opacity-60" />
-              <p className="font-editorial text-lg text-[#50544C]">No active deliveries in transit.</p>
-              <p className="text-xs text-[#737373]">
-                Once a volunteer accepts a pickup assignment for your reserved food, live tracking will appear here.
-              </p>
-            </div>
+            <EmptyState
+              variant="ngo-deliveries"
+              title="All active deliveries safely completed."
+              description="When a volunteer courier accepts a dispatch run for your claimed food, live tracking and handover verification will appear here."
+              actionText="View Reserved Batches"
+              actionIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              onAction={() => handleTabSelect('reservations')}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {myDeliveries.map((claim) => (
@@ -1015,11 +1025,14 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           </div>
 
           {completedHistory.length === 0 ? (
-            <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-3">
-              <CheckCircle2 className="w-8 h-8 text-[#647C50] mx-auto opacity-60" />
-              <p className="font-editorial text-lg text-[#50544C]">No completed receipts recorded yet.</p>
-              <p className="text-xs text-[#737373]">Completed handovers will generate official verified impact receipts here.</p>
-            </div>
+            <EmptyState
+              variant="donor-history"
+              title="Your shelter redirection history."
+              description="Verified handovers and official impact receipts will be archived and celebrated here."
+              actionText="Find Surplus to Reserve"
+              actionIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              onAction={() => handleTabSelect('discover')}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {completedHistory.map((item) => (

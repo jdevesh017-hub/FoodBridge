@@ -7,6 +7,7 @@ import { AccessibleModal } from '../common/AccessibleModal';
 const LeafletMap = React.lazy(() => import('../map/LeafletMap').then((m) => ({ default: m.LeafletMap })));
 const DeliveryRouteMap = React.lazy(() => import('../delivery/DeliveryRouteMap'));
 import { DeliveryStepper } from '../delivery/DeliveryStepper';
+import { EmptyState } from '../common/EmptyState';
 
 const MapFallback = () => (
   <div className="h-full min-h-[300px] w-full bg-[#E8EDE2]/50 rounded-xl border border-[#E2DFD2] flex flex-col items-center justify-center gap-2 p-6">
@@ -84,6 +85,11 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
   };
 
 
+
+  const [, setRefreshTick] = useState(0);
+  const handleRefreshTasks = () => {
+    setRefreshTick((t) => t + 1);
+  };
 
   const availableTasks = volunteerService.getAvailableTasks(volunteerLat, volunteerLng);
   const myAssignments = volunteerId ? volunteerService.getMyAssignments(volunteerId) : [];
@@ -511,11 +517,14 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
               </div>
 
               {availableTasks.length === 0 ? (
-                <div className="bg-white p-8 sm:p-12 rounded-lg border border-[#E2DFD2] text-center space-y-2">
-                  <CheckCircle2 className="w-8 h-8 text-[#647C50] mx-auto opacity-75" />
-                  <p className="font-editorial text-lg text-[#50544C]">All current surplus runs have been assigned.</p>
-                  <p className="text-xs text-[#737373]">New banquet surpluses are typically logged after 14:00 and 21:00.</p>
-                </div>
+                <EmptyState
+                  variant="volunteer-tasks"
+                  title="All community runs currently assigned."
+                  description="Local meal dispatch is moving smoothly! New commercial surplus runs are typically posted after 14:00 and 21:00."
+                  actionText="Refresh Dispatch Board"
+                  actionIcon={<RotateCcw className="w-3.5 h-3.5" />}
+                  onAction={handleRefreshTasks}
+                />
               ) : (
                 availableTasks.map((task) => {
                   const effectiveKg = task.quantity.pickupConfirmedKg || task.quantity.measuredKg || task.quantity.donorEstimatedKg;
@@ -622,18 +631,14 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
       {activeTab === 'active' && (
         <div className="space-y-6 tab-pane-transition">
           {!activeRun ? (
-            <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-3">
-              <Truck className="w-8 h-8 text-[#647C50] mx-auto opacity-75" />
-              <p className="font-editorial text-lg text-[#50544C]">No active delivery in progress.</p>
-              <p className="text-xs text-[#737373]">Claim an available run from the dispatch board to start.</p>
-              <button
-                onClick={() => handleTabSelect('available')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#183D2B] rounded hover:bg-[#254F38]"
-              >
-                <span>Browse Available Runs</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <EmptyState
+              variant="volunteer-active"
+              title="Ready for your next delivery mission?"
+              description="Volunteer couriers bridge the final mile between donor kitchens and community shelters. Choose an available run to start."
+              actionText="Browse Available Runs"
+              actionIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              onAction={() => handleTabSelect('available')}
+            />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Active Task Card */}
@@ -819,7 +824,15 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           </div>
 
           {deliveryHistory.length === 0 ? (
-            <p className="text-sm text-[#737373] py-8 text-center">No completed rescues logged in this session yet.</p>
+            <EmptyState
+              variant="volunteer-history"
+              title="Build your verified courier impact log."
+              description="Every completed food rescue mission and verified NGO receipt will be permanently celebrated here."
+              actionText="Accept a Delivery Run"
+              actionIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              onAction={() => handleTabSelect('available')}
+              className="border-0 shadow-none"
+            />
           ) : (
             <div className="divide-y divide-[#E2DFD2]">
               {deliveryHistory.map((d) => (

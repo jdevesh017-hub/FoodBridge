@@ -6,6 +6,7 @@ import { AccessibleModal } from '../common/AccessibleModal';
 import { DeliveryStepper } from '../delivery/DeliveryStepper';
 const DeliveryRouteMap = React.lazy(() => import('../delivery/DeliveryRouteMap'));
 import { CountUp } from '../common/motion/CountUp';
+import { EmptyState } from '../common/EmptyState';
 import {
   Plus,
   CheckCircle2,
@@ -628,20 +629,17 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
 
           {/* Active Table Body */}
           {filteredActiveDonations.length === 0 ? (
-            <div className="p-8 sm:p-12 text-center space-y-3">
-              <Package className="w-8 h-8 text-[#647C50] mx-auto opacity-60" />
-              <p className="font-editorial text-lg text-[#50544C]">No active surplus batches under this filter.</p>
-              <p className="text-xs text-[#737373]">
-                Post your commercial surplus when morning, luncheon, or banquet services wrap up.
-              </p>
-              <button
-                onClick={openCreateModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium text-white bg-[#183D2B] rounded hover:bg-[#254F38] min-h-[44px]"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Log First Surplus Batch</span>
-              </button>
-            </div>
+            <EmptyState
+              variant="donor-donations"
+              title="Ready to share fresh surplus with local shelters?"
+              description="Connect surplus banquet dishes, baked goods, or farm produce with verified community dining centers."
+              actionText="Log Surplus Batch"
+              actionIcon={<Plus className="w-4 h-4" />}
+              onAction={openCreateModal}
+              secondaryActionText={activeSubFilter !== 'all' ? 'Show All Active Batches' : undefined}
+              onSecondaryAction={activeSubFilter !== 'all' ? () => setActiveSubFilter('all') : undefined}
+              className="border-0 shadow-none"
+            />
           ) : (
             <>
               {/* Desktop Table View */}
@@ -899,13 +897,15 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
 
           {/* History Table Body */}
           {filteredHistoryDonations.length === 0 ? (
-            <div className="p-12 text-center space-y-3">
-              <History className="w-8 h-8 text-[#647C50] mx-auto opacity-60" />
-              <p className="font-editorial text-lg text-[#50544C]">No historical records found.</p>
-              <p className="text-xs text-[#737373]">
-                Delivered surplus lots will automatically generate official impact receipts here upon shelter receipt.
-              </p>
-            </div>
+            <EmptyState
+              variant="donor-history"
+              title="Your food redistribution history begins here."
+              description="Every verified handover produces a tamper-evident impact receipt and FSSAI safety log archived right here."
+              actionText="Log a Surplus Batch"
+              actionIcon={<Plus className="w-4 h-4" />}
+              onAction={openCreateModal}
+              className="border-0 shadow-none"
+            />
           ) : (
             <>
               <div className="hidden md:block overflow-x-auto">
