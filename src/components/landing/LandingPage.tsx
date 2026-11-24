@@ -1,8 +1,6 @@
-import React, { useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { impactService } from '../../services/impactService';
 import { ArrowRight, ShieldCheck, HeartHandshake, Truck, Building2, Sparkles, Check, ChevronRight } from 'lucide-react';
-
-const RouteGlobe = lazy(() => import('./RouteGlobe'));
 
 interface LandingPageProps {
   onNavigate: (view: string) => void;
@@ -145,15 +143,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Authentic Documentary Photography + Animated Route Globe */}
+          {/* Right Column: Authentic Documentary Photography */}
           <div className="lg:col-span-5 relative">
-            {/* Lazy-Loaded Route Globe SVG Accent (Desktop only: hidden below 1024px) */}
-            <div className="absolute -top-6 -right-6 lg:-top-8 lg:-right-8 z-20 hidden lg:block">
-              <Suspense fallback={null}>
-                <RouteGlobe />
-              </Suspense>
-            </div>
-
             <div
               ref={photoRef}
               className="relative rounded-2xl overflow-hidden shadow-lg border border-[#E2DFD2] aspect-[4/3] bg-[#E8EDE2] will-change-transform"
