@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { impactService } from '../../services/impactService';
 import { ShieldCheck, Leaf, HeartHandshake, Building2, Truck, RefreshCw, Award } from 'lucide-react';
+import { CountUp } from '../common/motion/CountUp';
 
 export const ImpactView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'combined' | 'session_only'>('combined');
@@ -64,7 +65,7 @@ export const ImpactView: React.FC = () => {
             <Leaf className="w-4 h-4 text-[#183D2B]" />
           </div>
           <p className="font-editorial text-4xl font-bold text-[#183D2B] tabular-nums">
-            {activeStats.totalSurplusKgDiverted.toLocaleString()}{' '}
+            <CountUp end={activeStats.totalSurplusKgDiverted} />{' '}
             <span className="text-base font-sans font-normal text-[#50544C]">kg</span>
           </p>
           <p className="text-xs text-[#50544C]">Physically weighed and signed off</p>
@@ -76,7 +77,7 @@ export const ImpactView: React.FC = () => {
             <HeartHandshake className="w-4 h-4 text-[#C77A54]" />
           </div>
           <p className="font-editorial text-4xl font-bold text-[#183D2B] tabular-nums">
-            {activeStats.totalMealsRedistributed.toLocaleString()}
+            <CountUp end={activeStats.totalMealsRedistributed} />
           </p>
           <p className="text-xs text-[#50544C]">At standard 350g meal portions</p>
         </div>
@@ -87,7 +88,7 @@ export const ImpactView: React.FC = () => {
             <ShieldCheck className="w-4 h-4 text-[#647C50]" />
           </div>
           <p className="font-editorial text-4xl font-bold text-[#183D2B] tabular-nums">
-            {Math.round(activeStats.co2EquivalentPreventedKg).toLocaleString()}{' '}
+            <CountUp end={Math.round(activeStats.co2EquivalentPreventedKg)} />{' '}
             <span className="text-base font-sans font-normal text-[#50544C]">kg</span>
           </p>
           <p className="text-xs text-[#50544C]">Estimated emissions prevented</p>
@@ -99,7 +100,7 @@ export const ImpactView: React.FC = () => {
             <Award className="w-4 h-4 text-[#C77A54]" />
           </div>
           <p className="font-editorial text-4xl font-bold text-[#183D2B] tabular-nums">
-            {activeStats.completedRescuesCount}
+            <CountUp end={activeStats.completedRescuesCount} />
           </p>
           <p className="text-xs text-[#50544C]">Zero reported spoilage</p>
         </div>
@@ -113,7 +114,7 @@ export const ImpactView: React.FC = () => {
             <span>Participating Donors</span>
           </div>
           <p className="font-editorial text-3xl font-bold tabular-nums">
-            {activeStats.participatingDonorsCount} Commercial Facilities
+            <CountUp end={activeStats.participatingDonorsCount} /> Commercial Facilities
           </p>
           <p className="text-xs text-[#50544C]">Hotels, bakeries, corporate & college canteens</p>
         </div>
@@ -124,7 +125,7 @@ export const ImpactView: React.FC = () => {
             <span>Community Recipient NGOs</span>
           </div>
           <p className="font-editorial text-3xl font-bold tabular-nums">
-            {activeStats.participatingNgosCount} Verified Shelters
+            <CountUp end={activeStats.participatingNgosCount} /> Verified Shelters
           </p>
           <p className="text-xs text-[#50544C]">Elderly dining rooms, day shelters, and youth pantries</p>
         </div>
@@ -135,7 +136,7 @@ export const ImpactView: React.FC = () => {
             <span>Active Dispatch Couriers</span>
           </div>
           <p className="font-editorial text-3xl font-bold tabular-nums">
-            {activeStats.activeVolunteersCount} Volunteer Drivers
+            <CountUp end={activeStats.activeVolunteersCount} /> Volunteer Drivers
           </p>
           <p className="text-xs text-[#50544C]">Equipped with insulated thermal containers</p>
         </div>

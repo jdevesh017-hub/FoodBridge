@@ -373,7 +373,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           PAGE 1: OVERVIEW TAB
           ============================================================ */}
       {activeTab === 'overview' && (
-        <div className="space-y-8">
+        <div className="space-y-8 tab-pane-transition">
           {/* KPI Summary Strip */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
@@ -562,7 +562,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           PAGE 2: DISCOVER FOOD TAB (AVAILABLE POOL + MAP)
           ============================================================ */}
       {activeTab === 'discover' && (
-        <>
+        <div className="space-y-4 tab-pane-transition">
           {/* Filter Bar */}
           <div className="bg-white p-4 rounded-lg border border-[#E2DFD2] shadow-xs flex flex-wrap items-center justify-between gap-4 text-xs">
             <div className="flex flex-wrap items-center gap-3">
@@ -785,14 +785,14 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
               </p>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* ============================================================
           PAGE 3: MY RESERVATIONS TAB (RESERVED, AWAITING COURIER)
           ============================================================ */}
       {activeTab === 'reservations' && (
-        <div className="space-y-4">
+        <div className="space-y-4 tab-pane-transition">
           <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
             <h2 className="font-editorial text-xl font-bold text-[#183D2B] mb-1">
               My Food Reservations
@@ -876,7 +876,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           PAGE 4: DELIVERIES TAB (IN-FLIGHT COURIERS & INTAKE SIGN-OFF)
           ============================================================ */}
       {activeTab === 'deliveries' && (
-        <div className="space-y-4">
+        <div className="space-y-4 tab-pane-transition">
           <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
             <h2 className="font-editorial text-xl font-bold text-[#183D2B] mb-1">
               Active Delivery Runs & Intake Sign-Off
@@ -1004,7 +1004,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
           PAGE 5: HISTORY TAB (COMPLETED RECEIPTS)
           ============================================================ */}
       {activeTab === 'history' && (
-        <div className="space-y-4">
+        <div className="space-y-4 tab-pane-transition">
           <div className="bg-white p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
             <h2 className="font-editorial text-xl font-bold text-[#183D2B] mb-1">
               Completed Redirection History

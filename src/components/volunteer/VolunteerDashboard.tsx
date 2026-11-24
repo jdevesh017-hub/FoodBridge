@@ -271,7 +271,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           PAGE 1: OVERVIEW TAB
           ============================================================ */}
       {activeTab === 'overview' && (
-        <div className="space-y-8">
+        <div className="space-y-8 tab-pane-transition">
           {/* Volunteer KPI Strip */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
@@ -473,7 +473,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           PAGE 2: AVAILABLE TASKS TAB (DISPATCH POOL + MAP)
           ============================================================ */}
       {activeTab === 'available' && (
-        <>
+        <div className="tab-pane-transition">
           {/* Mobile View Switcher (Tasks vs Map) */}
           <div className="flex lg:hidden items-center justify-center p-1 bg-[#E8EDE2] rounded mb-4 w-full">
             <button
@@ -613,14 +613,14 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
               </p>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* ============================================================
           PAGE 3: MY DELIVERIES / ACTIVE RUN PROGRESSION TAB
           ============================================================ */}
       {activeTab === 'active' && (
-        <div className="space-y-6">
+        <div className="space-y-6 tab-pane-transition">
           {!activeRun ? (
             <div className="bg-white p-12 rounded-lg border border-[#E2DFD2] text-center space-y-3">
               <Truck className="w-8 h-8 text-[#647C50] mx-auto opacity-75" />
@@ -808,7 +808,7 @@ export const VolunteerDashboard: React.FC<VolunteerDashboardProps> = ({
           PAGE 4: DELIVERY HISTORY TAB
           ============================================================ */}
       {activeTab === 'history' && (
-        <div className="bg-white rounded-lg border border-[#E2DFD2] p-6 space-y-4 shadow-xs">
+        <div className="bg-white rounded-lg border border-[#E2DFD2] p-6 space-y-4 shadow-xs tab-pane-transition">
           <div>
             <h2 className="font-editorial text-xl font-bold text-[#183D2B]">
               Completed Courier Mission History

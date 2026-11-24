@@ -5,6 +5,7 @@ import { StatusBadge } from '../common/StatusBadge';
 import { AccessibleModal } from '../common/AccessibleModal';
 import { DeliveryStepper } from '../delivery/DeliveryStepper';
 const DeliveryRouteMap = React.lazy(() => import('../delivery/DeliveryRouteMap'));
+import { CountUp } from '../common/motion/CountUp';
 import {
   Plus,
   CheckCircle2,
@@ -395,25 +396,29 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
           PAGE 1: OVERVIEW TAB
           ============================================================ */}
       {activeTab === 'overview' && (
-        <div className="space-y-8">
+        <div className="space-y-8 tab-pane-transition">
           {/* KPI Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Active Surplus Batches</p>
-              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">{activeCount}</p>
+              <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
+                <CountUp end={activeCount} />
+              </p>
               <p className="text-[11px] text-[#50544C] mt-1">Open in pool or courier en route</p>
             </div>
 
             <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Pending Pickups</p>
-              <p className="font-editorial text-3xl font-bold text-[#C77A54] tabular-nums mt-1">{pendingPickups}</p>
+              <p className="font-editorial text-3xl font-bold text-[#C77A54] tabular-nums mt-1">
+                <CountUp end={pendingPickups} />
+              </p>
               <p className="text-[11px] text-[#50544C] mt-1">Couriers en route to kitchen</p>
             </div>
 
             <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Total Surplus Diverted</p>
               <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
-                {Math.round(totalRecoveredKg)} <span className="text-sm font-sans font-normal text-[#50544C]">kg</span>
+                <CountUp end={Math.round(totalRecoveredKg)} /> <span className="text-sm font-sans font-normal text-[#50544C]">kg</span>
               </p>
               <p className="text-[11px] text-[#50544C] mt-1">Diverted from municipal disposal</p>
             </div>
@@ -421,7 +426,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
             <div className="bg-white p-4 sm:p-5 rounded-lg border border-[#E2DFD2] shadow-xs">
               <p className="text-xs text-[#647C50]">Community Meals Served</p>
               <p className="font-editorial text-3xl font-bold text-[#183D2B] tabular-nums mt-1">
-                ~{totalMealsProvided}
+                ~<CountUp end={totalMealsProvided} />
               </p>
               <p className="text-[11px] text-[#50544C] mt-1">Across {completedCount} verified deliveries</p>
             </div>
@@ -573,7 +578,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
           PAGE 2: MY DONATIONS TAB (ACTIVE LISTINGS)
           ============================================================ */}
       {activeTab === 'donations' && (
-        <div className="bg-white rounded-lg border border-[#E2DFD2] shadow-xs overflow-hidden">
+        <div className="bg-white rounded-lg border border-[#E2DFD2] shadow-xs overflow-hidden tab-pane-transition">
           {/* Sub-header with Active Filters */}
           <div className="p-4 sm:p-5 border-b border-[#E2DFD2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FBF9F5]">
             <div>
@@ -852,7 +857,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({
           PAGE 3: DONATION HISTORY TAB (COMPLETED & CANCELLED)
           ============================================================ */}
       {activeTab === 'history' && (
-        <div className="bg-white rounded-lg border border-[#E2DFD2] shadow-xs overflow-hidden">
+        <div className="bg-white rounded-lg border border-[#E2DFD2] shadow-xs overflow-hidden tab-pane-transition">
           {/* Sub-header with History Filters */}
           <div className="p-5 border-b border-[#E2DFD2] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FBF9F5]">
             <div>

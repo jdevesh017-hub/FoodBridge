@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { impactService } from '../../services/impactService';
 import { ArrowRight, ShieldCheck, HeartHandshake, Truck, Building2, Sparkles, Check, ChevronRight } from 'lucide-react';
+import { CountUp } from '../common/motion/CountUp';
+import { Reveal } from '../common/motion/Reveal';
 
 interface LandingPageProps {
   onNavigate: (view: string) => void;
@@ -173,7 +175,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 2. IMPACT INTRODUCTION & STATISTICS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Reveal as="section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-2xl border border-[#E2DFD2] p-8 sm:p-12 shadow-xs space-y-10">
           <div className="max-w-2xl space-y-3">
             <span className="text-xs font-semibold tracking-wider uppercase text-[#647C50]">
@@ -189,12 +191,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </p>
           </div>
 
-          {/* 3 Carefully Designed Statistics */}
+          {/* 3 Carefully Designed Statistics with CountUp Motion */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-4 border-t border-[#E2DFD2]">
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-wider text-[#647C50] font-semibold">Surplus Food Recovered</p>
               <p className="font-editorial text-4xl sm:text-5xl font-bold text-[#183D2B] tabular-nums">
-                {demoStats.totalSurplusKgDiverted.toLocaleString()}{' '}
+                <CountUp end={demoStats.totalSurplusKgDiverted} />{' '}
                 <span className="text-lg font-sans font-normal text-[#50544C]">kg</span>
               </p>
               <p className="text-xs text-[#50544C]">
@@ -207,7 +209,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-wider text-[#647C50] font-semibold">Meals Redistributed</p>
               <p className="font-editorial text-4xl sm:text-5xl font-bold text-[#183D2B] tabular-nums">
-                {demoStats.totalMealsRedistributed.toLocaleString()}
+                <CountUp end={demoStats.totalMealsRedistributed} />
               </p>
               <p className="text-xs text-[#50544C]">
                 Calculated at standard 350g wholesome portions
@@ -217,7 +219,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-wider text-[#647C50] font-semibold">Successful Rescues</p>
               <p className="font-editorial text-4xl sm:text-5xl font-bold text-[#183D2B] tabular-nums">
-                {demoStats.completedRescuesCount + sessionStats.completedRescuesCount}
+                <CountUp end={demoStats.completedRescuesCount + sessionStats.completedRescuesCount} />
               </p>
               <p className="text-xs text-[#50544C]">
                 Verified handovers to verified community organizations
@@ -233,11 +235,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </button>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* 3. HOW FOODBRIDGE WORKS (3 Editorial Steps) */}
-      <section id="how_it_works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        <div className="text-center max-w-2xl mx-auto space-y-3">
+      <Reveal as="section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div id="how_it_works" className="text-center max-w-2xl mx-auto space-y-3">
           <span className="text-xs font-semibold tracking-wider uppercase text-[#647C50]">
             Operational Workflow
           </span>
@@ -307,10 +309,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* 4. WHO WE CONNECT (3 Visually Distinct Sections) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <Reveal as="section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <span className="text-xs font-semibold tracking-wider uppercase text-[#647C50]">
             Our Ecosystem
@@ -393,10 +395,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </button>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* 5. SIGNATURE AWARENESS & INTELLIGENCE TEASER */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Reveal as="section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[#F7F6F0] rounded-2xl border border-[#E2DFD2] p-8 sm:p-12 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-8 space-y-4">
             <span className="text-xs font-semibold tracking-wider uppercase text-[#C77A54]">
@@ -432,7 +434,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <p className="text-[10px] text-[#737373] text-right font-mono">Matched against 820 kg history</p>
           </div>
         </div>
-      </section>
+      </Reveal>
     </div>
   );
 };
